@@ -2,7 +2,7 @@ import { MongoClient, ServerApiVersion } from 'mongodb';
 import dotenv from 'dotenv';
 dotenv.config();
 
- // Use MongoDB Atlas connection string
+// Use MongoDB Atlas connection string
 const MONGODB_URI = process.env.MONGO_URI || 'mongodb+srv://jules:123jules@cluster0.jzw94.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 const DB_NAME = process.env.MONGO_DB_NAME || 'mad2moi_blog';
 
