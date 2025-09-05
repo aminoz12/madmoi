@@ -26,7 +26,7 @@ const dbConfig = {
 
 // MongoDB configuration
 const mongoConfig = {
-  uri: process.env.MONGO_URI || 'mongodb://localhost:27017',
+  uri: process.env.MONGO_URI || 'mongodb+srv://jules:123jules@cluster0.jzw94.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',
   dbName: process.env.MONGO_DB_NAME || 'mad2moi_blog'
 };
 
