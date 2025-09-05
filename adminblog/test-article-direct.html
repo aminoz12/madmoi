@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Direct Article Creation Test</title>
+</head>
+<body>
+    <h1>Article Creation Test</h1>
+    <button onclick="testArticleCreation()">Test Article Creation</button>
+    <div id="result"></div>
+
+    <script>
+        async function testArticleCreation() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                console.log('🧪 Testing article creation...');
+                
+                const testArticle = {
+                    title: 'Browser Test Article ' + Date.now(),
+                    content: 'This is a test article created from the browser.',
+                    excerpt: 'Testing article creation via browser',
+                    status: 'draft'
+                };
+                
+                console.log('📤 Sending request:', testArticle);
+                
+                const response = await fetch('/api/articles', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testArticle)
+                });
+                
+                console.log('📡 Response status:', response.status, response.statusText);
+                
+                const responseText = await response.text();
+                console.log('📄 Response text:', responseText);
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <h2 style="color: green;">✅ SUCCESS!</h2>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Response:</strong></p>
+                        <pre>${responseText}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h2 style="color: red;">❌ FAILED!</h2>
+                        <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                        <p><strong>Error Response:</strong></p>
+                        <pre style="background: #ffe6e6; padding: 10px; border-radius: 5px;">${responseText}</pre>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+                resultDiv.innerHTML = `
+                    <h2 style="color: red;">❌ NETWORK ERROR!</h2>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p><strong>Type:</strong> ${error.constructor.name}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
+

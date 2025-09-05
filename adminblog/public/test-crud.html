@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Articles CRUD Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #1a1a1a; color: white; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #333; border-radius: 8px; background: #2a2a2a; }
+        .test-section h2 { color: #4ade80; margin-top: 0; }
+        button { padding: 10px 20px; margin: 5px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #2563eb; }
+        button.success { background: #10b981; }
+        button.error { background: #ef4444; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 4px; background: #374151; }
+        .success { background: #065f46; border-left: 4px solid #10b981; }
+        .error { background: #7f1d1d; border-left: 4px solid #ef4444; }
+        .warning { background: #92400e; border-left: 4px solid #f59e0b; }
+        textarea { width: 100%; height: 100px; background: #374151; color: white; border: 1px solid #4b5563; border-radius: 4px; padding: 10px; }
+        input { background: #374151; color: white; border: 1px solid #4b5563; border-radius: 4px; padding: 8px; margin: 5px; }
+        pre { background: #111; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Articles CRUD Test Interface</h1>
+        <p>Test all CRUD operations for articles on <code>http://localhost:4322/admin/articles</code></p>
+        
+        <!-- READ Operations -->
+        <div class="test-section">
+            <h2>1️⃣ READ Operations</h2>
+            <button onclick="testGetAllArticles()">Get All Articles</button>
+            <button onclick="testGetArticleById()">Get Article by ID</button>
+            <input type="number" id="articleIdInput" placeholder="Article ID" value="1">
+            <div id="readResults"></div>
+        </div>
+        
+        <!-- CREATE Operations -->
+        <div class="test-section">
+            <h2>2️⃣ CREATE Operations</h2>
+            <div>
+                <input type="text" id="createTitle" placeholder="Article Title" value="Test Article">
+                <input type="text" id="createExcerpt" placeholder="Excerpt" value="Test excerpt">
+                <select id="createStatus">
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                </select>
+            </div>
+            <textarea id="createContent" placeholder="Article content">
+# Test Article
+
+This is a test article created via the CRUD test interface.
+
+## Content
+
+- Testing create functionality
+- Verifying database connection
+- Checking API responses
+
+**Created at:** {timestamp}
+            </textarea>
+            <button onclick="testCreateArticle()">Create Article</button>
+            <div id="createResults"></div>
+        </div>
+        
+        <!-- UPDATE Operations -->
+        <div class="test-section">
+            <h2>3️⃣ UPDATE Operations</h2>
+            <div>
+                <input type="number" id="updateId" placeholder="Article ID to update">
+                <input type="text" id="updateTitle" placeholder="New Title">
+                <select id="updateStatus">
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                </select>
+            </div>
+            <button onclick="testUpdateArticle()">Update Article</button>
+            <div id="updateResults"></div>
+        </div>
+        
+        <!-- DELETE Operations -->
+        <div class="test-section">
+            <h2>4️⃣ DELETE Operations</h2>
+            <input type="number" id="deleteId" placeholder="Article ID to delete">
+            <button onclick="testDeleteArticle()">Delete Article</button>
+            <div id="deleteResults"></div>
+        </div>
+        
+        <!-- Test Results Summary -->
+        <div class="test-section">
+            <h2>📊 Test Summary</h2>
+            <div id="testSummary">
+                <p>Run tests to see results...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let testResults = [];
+        let lastCreatedId = null;
+
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            try {
+                const options = {
+                    method,
+                    headers: { 'Content-Type': 'application/json' }
+                };
+                
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+                
+                const response = await fetch(endpoint, options);
+                const responseText = await response.text();
+                
+                let responseData;
+                try {
+                    responseData = JSON.parse(responseText);
+                } catch (e) {
+                    responseData = responseText;
+                }
+                
+                return {
+                    status: response.status,
+                    ok: response.ok,
+                    data: responseData
+                };
+            } catch (error) {
+                return {
+                    status: 0,
+                    ok: false,
+                    error: error.message
+                };
+            }
+        }
+
+        function addResult(testName, success, message, data = null) {
+            testResults.push({ testName, success, message, timestamp: new Date() });
+            updateSummary();
+            
+            const resultClass = success ? 'success' : 'error';
+            let resultHtml = `<div class="result ${resultClass}">
+                <strong>${success ? '✅' : '❌'} ${testName}</strong><br>
+                ${message}`;
+            
+            if (data) {
+                resultHtml += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            }
+            
+            resultHtml += '</div>';
+            return resultHtml;
+        }
+
+        function updateSummary() {
+            const total = testResults.length;
+            const passed = testResults.filter(r => r.success).length;
+            const failed = total - passed;
+            
+            document.getElementById('testSummary').innerHTML = `
+                <div class="result ${passed === total ? 'success' : failed > 0 ? 'error' : 'warning'}">
+                    <strong>📊 Test Results: ${passed}/${total} passed</strong><br>
+                    ✅ Passed: ${passed}<br>
+                    ❌ Failed: ${failed}<br>
+                    Last updated: ${new Date().toLocaleTimeString()}
+                </div>
+            `;
+        }
+
+        async function testGetAllArticles() {
+            const result = await apiCall('/api/articles');
+            const resultDiv = document.getElementById('readResults');
+            
+            if (result.ok) {
+                const articles = Array.isArray(result.data) ? result.data : [];
+                resultDiv.innerHTML = addResult(
+                    'Get All Articles', 
+                    true, 
+                    `Found ${articles.length} articles`,
+                    articles.slice(0, 3).map(a => ({ id: a.id, title: a.title, status: a.status }))
+                );
+            } else {
+                resultDiv.innerHTML = addResult(
+                    'Get All Articles', 
+                    false, 
+                    `Failed: ${result.status} - ${result.error || JSON.stringify(result.data)}`
+                );
+            }
+        }
+
+        async function testGetArticleById() {
+            const id = document.getElementById('articleIdInput').value;
+            if (!id) return alert('Please enter an article ID');
+            
+            const result = await apiCall(`/api/articles/${id}`);
+            const resultDiv = document.getElementById('readResults');
+            
+            if (result.ok) {
+                resultDiv.innerHTML += addResult(
+                    'Get Article by ID', 
+                    true, 
+                    `Found article: ${result.data.title}`,
+                    { id: result.data.id, title: result.data.title, status: result.data.status }
+                );
+            } else {
+                resultDiv.innerHTML += addResult(
+                    'Get Article by ID', 
+                    false, 
+                    `Failed: ${result.status} - ${result.error || JSON.stringify(result.data)}`
+                );
+            }
+        }
+
+        async function testCreateArticle() {
+            const title = document.getElementById('createTitle').value;
+            const excerpt = document.getElementById('createExcerpt').value;
+            const content = document.getElementById('createContent').value.replace('{timestamp}', new Date().toISOString());
+            const status = document.getElementById('createStatus').value;
+            
+            if (!title || !content) return alert('Please enter title and content');
+            
+            const articleData = {
+                title,
+                excerpt,
+                content,
+                status,
+                category: 'ROLEPLAY',
+                author_id: 1
+            };
+            
+            const result = await apiCall('/api/articles', 'POST', articleData);
+            const resultDiv = document.getElementById('createResults');
+            
+            if (result.ok) {
+                lastCreatedId = result.data.id;
+                document.getElementById('updateId').value = lastCreatedId;
+                document.getElementById('deleteId').value = lastCreatedId;
+                
+                resultDiv.innerHTML = addResult(
+                    'Create Article', 
+                    true, 
+                    `Created article with ID: ${result.data.id}`,
+                    { id: result.data.id, title: result.data.title, slug: result.data.slug }
+                );
+            } else {
+                resultDiv.innerHTML = addResult(
+                    'Create Article', 
+                    false, 
+                    `Failed: ${result.status} - ${result.error || JSON.stringify(result.data)}`
+                );
+            }
+        }
+
+        async function testUpdateArticle() {
+            const id = document.getElementById('updateId').value;
+            const title = document.getElementById('updateTitle').value;
+            const status = document.getElementById('updateStatus').value;
+            
+            if (!id) return alert('Please enter an article ID to update');
+            
+            const updateData = {
+                title: title || `Updated Article ${Date.now()}`,
+                content: `# Updated Article\n\nThis article was updated via CRUD test.\n\n**Updated at:** ${new Date().toISOString()}`,
+                status,
+                excerpt: 'Updated via CRUD test'
+            };
+            
+            const result = await apiCall(`/api/articles/${id}`, 'PUT', updateData);
+            const resultDiv = document.getElementById('updateResults');
+            
+            if (result.ok) {
+                resultDiv.innerHTML = addResult(
+                    'Update Article', 
+                    true, 
+                    `Updated article ID: ${id}`,
+                    { id: result.data.id, title: result.data.title, status: result.data.status }
+                );
+            } else {
+                resultDiv.innerHTML = addResult(
+                    'Update Article', 
+                    false, 
+                    `Failed: ${result.status} - ${result.error || JSON.stringify(result.data)}`
+                );
+            }
+        }
+
+        async function testDeleteArticle() {
+            const id = document.getElementById('deleteId').value;
+            if (!id) return alert('Please enter an article ID to delete');
+            
+            if (!confirm(`Are you sure you want to delete article ${id}?`)) return;
+            
+            const result = await apiCall(`/api/articles/${id}`, 'DELETE');
+            const resultDiv = document.getElementById('deleteResults');
+            
+            if (result.ok) {
+                resultDiv.innerHTML = addResult(
+                    'Delete Article', 
+                    true, 
+                    `Deleted article ID: ${id}`
+                );
+            } else {
+                resultDiv.innerHTML = addResult(
+                    'Delete Article', 
+                    false, 
+                    `Failed: ${result.status} - ${result.error || JSON.stringify(result.data)}`
+                );
+            }
+        }
+
+        // Auto-run basic test on load
+        window.onload = function() {
+            setTimeout(testGetAllArticles, 1000);
+        };
+    </script>
+</body>
+</html>
+

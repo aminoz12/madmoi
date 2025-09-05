@@ -1,0 +1,541 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCategories, initializeDatabase } from '../utils/database.js';
+
+// Helper function to convert hex color to Tailwind CSS classes
+function getColorClasses(hexColor) {
+  // Default color if hex is invalid
+  const defaultColor = {
+    gradient: 'from-blue-500 to-blue-700',
+    bg: 'bg-blue-500/20',
+    border: 'border-blue-500/30',
+    text: 'text-blue-300'
+  };
+  
+  if (!hexColor || !hexColor.startsWith('#')) {
+    return defaultColor;
+  }
+  
+  // Simple color mapping for common hex values
+  const colorMap = {
+    '#3B82F6': { // Blue
+      gradient: 'from-blue-500 to-blue-700',
+      bg: 'bg-blue-500/20',
+      border: 'border-blue-500/30',
+      text: 'text-blue-300'
+    },
+    '#EF4444': { // Red
+      gradient: 'from-red-500 to-red-700',
+      bg: 'bg-red-500/20',
+      border: 'border-red-500/30',
+      text: 'text-red-300'
+    },
+    '#10B981': { // Green
+      gradient: 'from-green-500 to-green-700',
+      bg: 'bg-green-500/20',
+      border: 'border-green-500/30',
+      text: 'text-green-300'
+    },
+    '#F59E0B': { // Yellow
+      gradient: 'from-yellow-500 to-yellow-700',
+      bg: 'bg-yellow-500/20',
+      border: 'border-yellow-500/30',
+      text: 'text-yellow-300'
+    },
+    '#8B5CF6': { // Purple
+      gradient: 'from-purple-500 to-purple-700',
+      bg: 'bg-purple-500/20',
+      border: 'border-purple-500/30',
+      text: 'text-purple-300'
+    },
+    '#EC4899': { // Pink
+      gradient: 'from-pink-500 to-pink-700',
+      bg: 'bg-pink-500/20',
+      border: 'border-pink-500/30',
+      text: 'text-pink-300'
+    },
+    '#06B6D4': { // Cyan
+      gradient: 'from-cyan-500 to-cyan-700',
+      bg: 'bg-cyan-500/20',
+      border: 'border-cyan-500/30',
+      text: 'text-cyan-300'
+    },
+    '#84CC16': { // Lime
+      gradient: 'from-lime-500 to-lime-700',
+      bg: 'bg-lime-500/20',
+      border: 'border-lime-500/30',
+      text: 'text-lime-300'
+    }
+  };
+  
+  return colorMap[hexColor.toUpperCase()] || defaultColor;
+}
+
+// Initialize database connection
+await initializeDatabase();
+
+// Get categories from database instead of hardcoded data
+let categories = [];
+
+try {
+  categories = await getCategories();
+  
+  // Transform database categories to match the expected format
+  categories = categories.map(cat => {
+    // Parse color from database (should be hex format like #3B82F6)
+    const dbColor = cat.color || '#3B82F6';
+    
+    // Create color classes based on database color
+    const colorClasses = getColorClasses(dbColor);
+    
+    return {
+      name: cat.name,
+      slug: cat.slug,
+      description: cat.description || `Découvrez nos articles sur ${cat.name}`,
+      icon: cat.icon || '📁',
+      color: colorClasses.gradient,
+      bgColor: colorClasses.bg,
+      borderColor: colorClasses.border,
+      textColor: colorClasses.text,
+      count: cat.article_count || 0,
+      featuredPosts: [], // Will be populated if we add featured posts logic
+      tags: cat.tags ? JSON.parse(cat.tags) : [],
+      featured: cat.featured || false // Add featured status
+    };
+  });
+} catch (error) {
+  console.error('❌ Error fetching categories from database:', error);
+  // Fallback to empty array if database fails
+  categories = [];
+}
+
+// Get search params for filtering
+const { searchParams } = Astro.url;
+const search = searchParams.get('search') || '';
+
+// Filter categories based on search
+let filteredCategories = categories;
+if (search) {
+  filteredCategories = categories.filter(cat => 
+    cat.name.toLowerCase().includes(search.toLowerCase()) ||
+    cat.description.toLowerCase().includes(search.toLowerCase()) ||
+    (cat.tags && cat.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase())))
+  );
+}
+---
+
+<Layout 
+  title="Catégories - Mad2Moi Blog"
+  description="Explorez nos catégories de contenu sur l'exploration érotique et le bien-être sexuel. Trouvez le contenu qui correspond à vos intérêts."
+>
+  <!-- Hero Section -->
+  <section class="relative py-20 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-secondary-900 via-primary-900 to-secondary-800">
+      <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ec4899" fill-opacity="0.05"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-30"></div>
+    </div>
+    
+    <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h1 class="text-5xl md:text-6xl font-bold text-white mb-6 font-elegant text-glow">
+        Catégories <span class="text-primary-400">Mad2Moi</span>
+      </h1>
+      <p class="text-xl text-secondary-300 mb-8 max-w-3xl mx-auto">
+        Explorez nos différentes catégories de contenu et trouvez ce qui vous intéresse le plus
+      </p>
+      
+      <!-- Search Bar -->
+      <div class="max-w-2xl mx-auto mb-8">
+        <div class="relative">
+          <input
+            type="search"
+            id="search-input"
+            placeholder="Rechercher une catégorie (ex: BDSM, Libertin, Roleplay...)"
+            class="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent text-white placeholder-white/60 backdrop-blur-sm text-lg"
+            autocomplete="off"
+          />
+          
+          <!-- Search Suggestions -->
+          <div id="search-suggestions" class="hidden absolute top-full left-0 right-0 mt-2 bg-secondary-800/95 backdrop-blur-sm border border-secondary-600 rounded-lg shadow-2xl z-50 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-secondary-600 scrollbar-track-secondary-800">
+            <!-- Suggestions will be populated by JavaScript -->
+          </div>
+          
+          <!-- Search Icon -->
+          <div class="absolute right-4 top-1/2 -translate-y-1/2 text-white/60">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+        </div>
+        
+        <!-- Search Tip -->
+        <p class="text-sm text-secondary-400 mt-3 text-center">
+          💡 Tapez pour voir les suggestions • Utilisez ↑↓ pour naviguer • Appuyez sur Entrée pour rechercher
+        </p>
+      </div>
+      
+      <!-- Active search filter -->
+      {search && (
+        <div class="flex justify-center mb-6">
+          <div class="flex items-center gap-3">
+            <span class="px-3 py-1 bg-primary-500/20 text-primary-300 rounded-full text-sm border border-primary-500/30">
+              Recherche: {search}
+            </span>
+            <a href="/categories" class="px-3 py-1 bg-secondary-500/20 text-secondary-300 rounded-full text-sm border border-secondary-500/30 hover:bg-secondary-500/30 transition-colors">
+              ✕ Effacer
+            </a>
+          </div>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <!-- Categories Grid -->
+  <section class="py-20 bg-gradient-to-b from-secondary-900 to-secondary-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {filteredCategories.length > 0 ? (
+        <>
+          <div class="text-center mb-16">
+            <h2 class="text-3xl font-bold text-white mb-4 font-elegant">
+              {search ? `Résultats de recherche` : 'Toutes nos catégories'}
+            </h2>
+            <p class="text-secondary-300">
+              {filteredCategories.length} catégorie{filteredCategories.length > 1 ? 's' : ''} trouvée{filteredCategories.length > 1 ? 's' : ''}
+            </p>
+          </div>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {filteredCategories.map((category) => (
+              <div class="card-sensual hover:border-glow group transform hover:scale-105 transition-all duration-500">
+                <!-- Category Header -->
+                <div class="flex items-center gap-4 mb-6">
+                  <div class={`w-16 h-16 bg-gradient-to-br ${category.color} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                    <span class="text-3xl">{category.icon}</span>
+                  </div>
+                  <div class="flex-1">
+                    <h3 class="text-2xl font-bold text-white mb-2 font-elegant group-hover:text-primary-400 transition-colors">
+                      {category.name}
+                    </h3>
+                    <div class="flex items-center gap-4">
+                      <span class={`px-3 py-1 ${category.bgColor} ${category.textColor} rounded-full text-sm font-medium border ${category.borderColor}`}>
+                        {category.count} article{category.count > 1 ? 's' : ''}
+                      </span>
+                      <a 
+                        href={`/blog?category=${category.slug}`}
+                        class="text-primary-400 hover:text-primary-300 text-sm font-medium transition-colors"
+                      >
+                        Voir tous les articles →
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Category Description -->
+                <p class="text-secondary-300 mb-6 leading-relaxed">
+                  {category.description}
+                </p>
+                
+                <!-- Tags -->
+                {category.tags && category.tags.length > 0 && (
+                  <div class="flex flex-wrap gap-2 mb-6">
+                    {category.tags.map((tag) => (
+                      <span class={`px-2 py-1 ${category.bgColor} ${category.textColor} rounded text-xs border ${category.borderColor}`}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                
+                <!-- Explore Button -->
+                <div class="mt-6 pt-6 border-t border-secondary-600/30">
+                  <a 
+                    href={`/blog?category=${category.slug}`}
+                    class={`inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r ${category.color} text-white font-semibold rounded-lg hover:scale-105 transition-all duration-300 shadow-lg`}
+                  >
+                    <span>Explorer {category.name}</span>
+                    <span class="group-hover:translate-x-1 transition-transform">→</span>
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      ) : (
+        <div class="text-center py-20">
+          <div class="text-8xl mb-6 opacity-60">🔍</div>
+          <h2 class="text-3xl font-bold text-white mb-4 font-elegant">
+            {categories.length === 0 ? 'Aucune catégorie disponible' : 'Aucune catégorie trouvée'}
+          </h2>
+          <p class="text-secondary-300 mb-8 max-w-md mx-auto">
+            {categories.length === 0 
+              ? 'Aucune catégorie n\'est encore créée. Créez des catégories dans le panneau d\'administration.'
+              : 'Aucune catégorie ne correspond à votre recherche. Essayez avec d\'autres mots-clés ou parcourez toutes nos catégories.'
+            }
+          </p>
+          {categories.length === 0 ? (
+            <a href="/admin" class="btn-primary">
+              🏗️ Créer des catégories
+            </a>
+          ) : (
+            <a href="/categories" class="btn-primary">
+              🏷️ Voir toutes les catégories
+            </a>
+          )}
+        </div>
+      )}
+    </div>
+  </section>
+
+  <!-- Quick Stats -->
+  <section class="py-20 bg-gradient-to-b from-secondary-800 to-secondary-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl font-bold text-white mb-4 font-elegant">
+          Statistiques du Blog
+        </h2>
+        <p class="text-secondary-300">
+          Découvrez l'étendue de notre contenu éducatif
+        </p>
+      </div>
+      
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div class="text-center group">
+          <div class="text-4xl font-bold text-white mb-2">{categories.length}</div>
+          <p class="text-secondary-400">Catégories</p>
+        </div>
+        <div class="text-center group">
+          <div class="text-4xl font-bold text-white mb-2">{categories.reduce((sum, cat) => sum + (cat.count || 0), 0)}</div>
+          <p class="text-secondary-400">Articles Totaux</p>
+        </div>
+        <div class="text-center group">
+          <div class="text-4xl font-bold text-white mb-2">{categories.filter(cat => cat.featured).length}</div>
+          <p class="text-secondary-400">Catégories à la Une</p>
+        </div>
+        <div class="text-center group">
+          <div class="text-4xl font-bold text-white mb-2">{Math.max(...categories.map(cat => cat.count || 0))}</div>
+          <p class="text-secondary-400">Plus Populaire</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<!-- Pass categories data to JavaScript -->
+<script define:vars={{ categoriesData: categories }}>
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('search-input');
+    const searchSuggestions = document.getElementById('search-suggestions');
+    
+    // Use categories data passed from server-side
+    console.log('🔍 Categories data available for search:', categoriesData);
+    console.log('🔍 Total categories loaded:', categoriesData.length);
+    
+    // Log sample category structure for debugging
+    if (categoriesData.length > 0) {
+      console.log('🔍 Sample category structure:', categoriesData[0]);
+    }
+    
+    let currentFocus = -1;
+    let filteredCategories = [];
+
+    // Search input event handlers
+    searchInput.addEventListener('input', handleSearchInput);
+    searchInput.addEventListener('keydown', handleKeydown);
+    searchInput.addEventListener('focus', handleFocus);
+    
+    // Close suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
+        hideSuggestions();
+      }
+    });
+
+    function handleSearchInput() {
+      const query = searchInput.value.trim();
+      
+      if (query.length === 0) {
+        hideSuggestions();
+        // Show all categories when search is cleared
+        window.location.href = '/categories';
+        return;
+      }
+
+      // Filter categories based on search query
+      filteredCategories = categoriesData.filter(category => {
+        const searchLower = query.toLowerCase();
+        const nameMatch = category.name.toLowerCase().includes(searchLower);
+        const descMatch = (category.description || '').toLowerCase().includes(searchLower);
+        const tagMatch = category.tags && category.tags.some(tag => tag.toLowerCase().includes(searchLower));
+        
+        return nameMatch || descMatch || tagMatch;
+      });
+
+      console.log('🔍 Search query:', query);
+      console.log('🔍 Filtered results:', filteredCategories.length);
+      
+      displaySearchSuggestions(filteredCategories, query);
+    }
+
+    function handleKeydown(e) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        currentFocus = Math.min(currentFocus + 1, filteredCategories.length - 1);
+        updateFocus();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        currentFocus = Math.max(currentFocus - 1, -1);
+        updateFocus();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (currentFocus >= 0 && filteredCategories[currentFocus]) {
+          selectCategory(filteredCategories[currentFocus]);
+        } else if (searchInput.value.trim()) {
+          // Perform search with current input
+          window.location.href = `/blog?category=${searchInput.value.trim().toLowerCase()}`;
+        }
+      } else if (e.key === 'Escape') {
+        hideSuggestions();
+        searchInput.blur();
+      }
+    }
+
+    function handleFocus() {
+      if (searchInput.value.trim().length > 0) {
+        handleSearchInput();
+      }
+    }
+
+    function displaySearchSuggestions(categories, query) {
+      if (categories.length === 0) {
+        searchSuggestions.innerHTML = `
+          <div class="p-4 text-center text-secondary-400">
+            <div class="text-2xl mb-2">🔍</div>
+            <p>Aucune catégorie trouvée pour "${query}"</p>
+            <p class="text-sm mt-2">Essayez d'autres mots-clés</p>
+          </div>
+        `;
+        showSuggestions();
+        return;
+      }
+
+      const suggestionsHTML = categories.map((category, index) => {
+        const highlightedName = highlightSearchTerms(category.name, query);
+        const highlightedDesc = highlightSearchTerms(category.description || '', query);
+        
+        return `
+          <div class="suggestion-item p-4 hover:bg-secondary-700/50 cursor-pointer transition-colors ${index === currentFocus ? 'bg-secondary-700/50' : ''}" 
+               data-category-slug="${category.slug}">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 bg-gradient-to-br ${category.color} rounded-lg flex items-center justify-center text-white text-sm font-semibold">
+                ${category.icon || '📁'}
+              </div>
+              <div class="flex-1">
+                <div class="font-semibold text-white mb-1">${highlightedName}</div>
+                <div class="text-sm text-secondary-300 mb-2">${highlightedDesc}</div>
+                <div class="flex items-center gap-2 text-xs text-secondary-400">
+                  <span>${category.count || 0} article${(category.count || 0) > 1 ? 's' : ''}</span>
+                  ${category.featured ? '<span class="px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded-full text-xs">⭐ À la une</span>' : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      const scrollIndicator = categories.length > 5 ? `
+        <div class="p-3 text-center text-secondary-400 text-sm border-t border-secondary-600/30">
+          💡 Utilisez ↑↓ pour naviguer • Appuyez sur Entrée pour sélectionner
+        </div>
+      ` : '';
+      
+      searchSuggestions.innerHTML = suggestionsHTML + scrollIndicator;
+      
+      // Add click handlers to suggestion items
+      searchSuggestions.querySelectorAll('.suggestion-item').forEach((item, index) => {
+        item.addEventListener('click', () => {
+          selectCategory(categories[index]);
+        });
+      });
+      
+      showSuggestions();
+    }
+
+    function selectCategory(category) {
+      console.log('🎯 Selected category:', category);
+      hideSuggestions();
+      searchInput.value = category.name;
+      
+      // Navigate to the category
+      if (category.slug) {
+        window.location.href = `/blog?category=${category.slug}`;
+      } else {
+        // Fallback to name-based search if no slug
+        window.location.href = `/blog?category=${category.name.toLowerCase()}`;
+      }
+    }
+
+    function highlightSearchTerms(text, query) {
+      if (!query) return text;
+      const regex = new RegExp(`(${query})`, 'gi');
+      return text.replace(regex, '<mark class="bg-primary-500/30 text-primary-200 px-1 rounded">$1</mark>');
+    }
+
+    function showSuggestions() {
+      searchSuggestions.classList.remove('hidden');
+      currentFocus = -1;
+    }
+
+    function hideSuggestions() {
+      searchSuggestions.classList.add('hidden');
+      currentFocus = -1;
+    }
+
+    function updateFocus() {
+      document.querySelectorAll('.suggestion-item').forEach((item, index) => {
+        item.classList.toggle('bg-secondary-700/50', index === currentFocus);
+      });
+      
+      // Scroll to focused item
+      if (currentFocus >= 0) {
+        const focusedItem = document.querySelector(`[data-index="${currentFocus}"]`);
+        if (focusedItem) {
+          focusedItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }
+    }
+  });
+</script>
+
+<style>
+  /* Custom scrollbar styles */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: rgba(55, 65, 81, 0.5);
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(75, 85, 99, 0.8);
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(75, 85, 99, 1);
+  }
+
+  /* Smooth scroll animations */
+  .search-suggestions-scroll {
+    scroll-behavior: smooth;
+  }
+
+  /* Pulse animation for scroll indicator */
+  @keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+</style>

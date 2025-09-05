@@ -1,0 +1,746 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PopularPosts from '../../components/blog/PopularPosts.astro';
+import { getPublishedArticles, getAllArticles, getCategories, initializeDatabase } from '../../utils/database.js';
+import CategoryBadge from '../../components/CategoryBadge.astro';
+
+// Initialize database connection
+await initializeDatabase();
+console.log('✅ Database initialized successfully');
+
+// Get articles and categories from database
+let blogPosts = [];
+let categories = [];
+
+try {
+  // Get published articles from database
+  console.log('🔍 Debug: Trying to fetch published articles...');
+  blogPosts = await getPublishedArticles();
+  console.log('🔍 Debug: Articles fetched:', blogPosts.length);
+  
+  if (blogPosts.length === 0) {
+    console.log('⚠️ No articles found in database at all');
+  } else {
+    console.log('🔍 Debug: First article sample:', blogPosts[0]);
+  }
+  
+  // Transform database articles to match expected format
+  blogPosts = blogPosts.map(article => {
+    console.log('🔍 Debug: Raw article from database:', {
+      id: article.id,
+      title: article.title,
+      category_name: article.category_name,
+      category_slug: article.category_slug,
+      category_color: article.category_color,
+      featured_image: article.featured_image,
+      status: article.status
+    });
+    
+    const transformed = {
+      slug: article.slug,
+      title: article.title,
+      excerpt: article.excerpt || '',
+      content: article.content,
+      category: article.category_name || 'Uncategorized',
+      category_slug: article.category_slug || '',
+      category_color: article.category_color || '#3B82F6',
+      author: article.author_name || 'Mad2Moi Team',
+      publishedAt: article.published_at ? new Date(article.published_at).toISOString().split('T')[0] : new Date(article.created_at).toISOString().split('T')[0],
+      readTime: calculateReadTime(article.content),
+      featured: article.is_featured || false,
+      image: (() => {
+        try {
+          if (!article.featured_image) return null;
+          
+          // Handle different image formats
+          if (typeof article.featured_image === 'string') {
+            // Try parsing as JSON first
+            try {
+              const parsed = JSON.parse(article.featured_image);
+              console.log('🔍 Debug: Parsed featured_image for', article.title, ':', parsed?.url ? 'URL found' : 'No URL');
+              
+              if (parsed?.url) {
+                // Convert admin URLs to be accessible from blog
+                let imageUrl = parsed.url;
+                
+                // Convert relative admin URLs to absolute
+                if (imageUrl.startsWith('/uploads/')) {
+                  imageUrl = `http://localhost:4322${imageUrl}`;
+                  console.log('🔄 Converted admin URL:', imageUrl);
+                }
+                
+                return imageUrl;
+              }
+              
+              return null;
+            } catch (parseError) {
+              // If not JSON, check if it's a direct URL
+              console.log('🔍 Debug: Not JSON, checking direct URL for', article.title);
+              
+              if (article.featured_image.startsWith('http://') || 
+                  article.featured_image.startsWith('https://') ||
+                  article.featured_image.startsWith('data:image/')) {
+                return article.featured_image;
+              }
+              
+              // Try as relative URL from admin
+              if (article.featured_image.startsWith('/uploads/')) {
+                const adminUrl = `http://localhost:4322${article.featured_image}`;
+                console.log('🔄 Converted relative URL:', adminUrl);
+                return adminUrl;
+              }
+              
+              console.warn('⚠️ Unrecognized image format for', article.title, ':', article.featured_image.substring(0, 100));
+              return null;
+            }
+          }
+          
+          return null;
+        } catch (error) {
+          console.error('❌ Error processing featured_image for', article.title, ':', error);
+          return null;
+        }
+      })(),
+      imageAlt: article.title,
+      isExplicit: false, // TODO: Add explicit content flag to database
+      tags: article.tags ? JSON.parse(article.tags) : [],
+      views: article.view_count || 0,
+      likes: 0, // TODO: Implement likes system
+      status: article.status // Add status for debugging
+    };
+    
+    console.log('🔍 Debug: Transformed article:', {
+      slug: transformed.slug,
+      title: transformed.title,
+      category: transformed.category,
+      image: transformed.image,
+      status: transformed.status,
+      featured_image_raw: article.featured_image
+    });
+    
+    return transformed;
+  });
+  
+  // Get categories from database
+  categories = await getCategories();
+  
+  console.log('🔍 Debug: Articles loaded:', blogPosts.length);
+  console.log('🔍 Debug: Categories loaded:', categories.length);
+  
+} catch (error) {
+  console.error('❌ Error fetching blog data:', error);
+  // Fallback to empty arrays if database fails
+  blogPosts = [];
+  categories = [];
+}
+
+// Helper function to calculate read time
+function calculateReadTime(content) {
+  const wordsPerMinute = 200;
+  const wordCount = content.split(/\s+/).length;
+  const readTime = Math.ceil(wordCount / wordsPerMinute);
+  return `${readTime} min`;
+}
+
+// Get search params for filtering
+const { searchParams } = Astro.url;
+const search = searchParams.get('search') || '';
+const category = searchParams.get('category') || '';
+
+console.log('🔍 Debug: Full URL:', Astro.url.toString());
+console.log('🔍 Debug: Search params object:', Object.fromEntries(searchParams.entries()));
+console.log('🔍 Debug: URL params - search:', search, 'category:', category);
+console.log('🔍 Debug: Search param type:', typeof search, 'length:', search.length);
+console.log('🔍 Debug: Category param type:', typeof category, 'length:', category.length);
+
+// Filter posts based on search and category
+let filteredPosts = blogPosts;
+
+if (search) {
+  const searchLower = search.toLowerCase().trim();
+  console.log('🔍 Debug: Searching for:', searchLower);
+  
+  filteredPosts = blogPosts.filter(post => {
+    const titleMatch = post.title.toLowerCase().includes(searchLower);
+    const excerptMatch = post.excerpt.toLowerCase().includes(searchLower);
+    const categoryMatch = post.category.toLowerCase().includes(searchLower);
+    const authorMatch = post.author.toLowerCase().includes(searchLower);
+    const tagsMatch = post.tags.some(tag => tag.toLowerCase().includes(searchLower));
+    
+    const matches = titleMatch || excerptMatch || categoryMatch || authorMatch || tagsMatch;
+    
+    if (matches) {
+      console.log(`🔍 Debug: Article "${post.title}" matches search:`, {
+        title: titleMatch,
+        excerpt: excerptMatch,
+        category: categoryMatch,
+        author: authorMatch,
+        tags: tagsMatch
+      });
+    }
+    
+    return matches;
+  });
+  
+  console.log('🔍 Debug: Filtered by search:', filteredPosts.length);
+  console.log('🔍 Debug: Search results:', filteredPosts.map(p => p.title));
+}
+
+if (category) {
+  filteredPosts = filteredPosts.filter(post => 
+    post.category_slug.toLowerCase() === category.toLowerCase()
+  );
+  console.log('🔍 Debug: Filtered by category:', filteredPosts.length);
+  console.log('🔍 Debug: Category slug to match:', category);
+  console.log('🔍 Debug: Available category slugs:', blogPosts.map(p => p.category_slug));
+}
+
+console.log('🔍 Debug: Final filtered posts:', filteredPosts.length);
+
+// Debug: Show all available articles for search
+console.log('🔍 Debug: All articles available for search:');
+blogPosts.forEach((post, index) => {
+  console.log(`  ${index + 1}. "${post.title}" (Category: ${post.category}, Author: ${post.author})`);
+});
+---
+
+<Layout title="Blog - Mad2Moi" description="Découvrez nos articles sur la sexualité, les relations et l'exploration personnelle">
+  <div class="min-h-screen bg-gradient-to-br from-primary-900 via-secondary-900 to-primary-800">
+  <!-- Hero Section -->
+    <div class="container mx-auto px-4 py-16">
+      <div class="text-center">
+        <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">
+          Blog Mad2Moi
+      </h1>
+      <p class="text-xl text-secondary-300 mb-8 max-w-3xl mx-auto">
+          Découvrez nos articles sur la sexualité, les relations et l'exploration personnelle
+      </p>
+      
+      <!-- Search Bar -->
+        <div class="max-w-2xl mx-auto mb-8">
+          <form method="GET" action="/blog" class="relative" id="searchForm">
+            <input
+              type="search"
+              name="search"
+              value={search}
+              placeholder="Rechercher un article (ex: BDSM, Libertin, Roleplay...)"
+              class="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent text-white placeholder-white/60 backdrop-blur-sm text-lg"
+              required
+              minlength="2"
+              id="searchInput"
+              autocomplete="off"
+            />
+            <!-- Preserve category parameter if it exists -->
+            {category && <input type="hidden" name="category" value={category} />}
+            
+            <!-- Search Suggestions -->
+            <div id="searchSuggestions" class="hidden absolute top-full left-0 right-0 mt-2 bg-secondary-800/95 backdrop-blur-sm border border-secondary-600 rounded-lg shadow-2xl z-50 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-secondary-600 scrollbar-track-secondary-800">
+              <!-- Suggestions will be populated by JavaScript -->
+            </div>
+            
+            <!-- Search button -->
+            <button type="submit" class="absolute right-4 top-1/2 -translate-y-2 text-white/60 hover:text-white transition-colors">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </button>
+            
+            <!-- Clear search button (only show when there's a search) -->
+            {search && (
+              <a 
+                href={category ? `/blog?category=${category}` : '/blog'}
+                class="absolute right-16 top-1/2 -translate-y-2 text-white/40 hover:text-white/60 transition-colors"
+                title="Effacer la recherche"
+              >
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </a>
+            )}
+          </form>
+          
+          <!-- Search tips -->
+          {!search && (
+            <div class="text-center text-white/60 text-sm mt-2">
+              <p>Recherchez par titre, contenu, catégorie ou auteur</p>
+            </div>
+          )}
+          
+          <!-- Search status -->
+          {search && (
+            <p class="text-center text-white/80 text-sm mt-2">
+              🔍 Recherche active: "{search}" - {filteredPosts.length} résultat{filteredPosts.length > 1 ? 's' : ''}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+
+  <!-- Categories Filter -->
+    {categories.length > 0 && (
+      <div class="container mx-auto px-4 mb-12">
+      <div class="flex flex-wrap gap-3 justify-center">
+        <a 
+          href="/blog"
+          class={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105 ${
+            !category 
+              ? 'bg-primary-600 text-white shadow-lg' 
+                : 'bg-white/10 text-white hover:bg-white/20 border border-white/20'
+          }`}
+        >
+          📚 Toutes
+        </a>
+        {categories.map((cat) => (
+          <a 
+              href={`/blog?category=${cat.slug}`}
+            class={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105 ${
+                category === cat.slug
+                ? 'bg-primary-600 text-white shadow-lg'
+                  : 'bg-white/10 text-white hover:bg-white/20 border border-white/20'
+            }`}
+          >
+              {cat.icon || '📁'} {cat.name}
+          </a>
+        ))}
+      </div>
+    </div>
+    )}
+
+    <!-- Active filters display -->
+    {(search || category) && (
+      <div class="container mx-auto px-4 mb-8">
+        <div class="flex flex-wrap gap-4 justify-center">
+          {search && (
+            <span class="px-3 py-1 bg-primary-500/20 text-primary-300 rounded-full text-sm border border-primary-500/30">
+              Recherche: {search}
+            </span>
+          )}
+          {category && (
+            <span class="px-3 py-1 bg-secondary-500/20 text-secondary-300 rounded-full text-sm border border-secondary-500/30">
+              Catégorie: {categories.find(cat => cat.slug === category)?.name || category}
+            </span>
+          )}
+        </div>
+      </div>
+    )}
+
+    <!-- Blog Content -->
+    <div class="container mx-auto px-4 pb-16">
+      {filteredPosts.length > 0 ? (
+        <>
+          <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-white mb-4">
+              {search || category ? `Résultats de recherche` : 'Tous nos articles'}
+            </h2>
+            <p class="text-secondary-300">
+              {search || category 
+                ? `${filteredPosts.length} article${filteredPosts.length > 1 ? 's' : ''} trouvé${filteredPosts.length > 1 ? 's' : ''}`
+                : `${filteredPosts.length} article${filteredPosts.length > 1 ? 's' : ''} au total`
+              }
+            </p>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredPosts.map((post, index) => {
+              console.log('🔍 Debug: Rendering post: image', {
+               
+                image: post.image,
+              });
+              
+              return (
+                <article   class={`${post.featured ? 'card-sensual hover:border-glow group card-hover' : 'card group hover:border-primary-500/50'} transform hover:scale-105 transition-all duration-300`}
+                         data-category={post.category}
+                         data-author={post.author}
+                         data-slug={post.slug}
+                         data-title={post.title}
+                         data-excerpt={post.excerpt}>
+                  
+                  <div class="aspect-video bg-gradient-to-br from-secondary-800/50 to-secondary-700/50 rounded-xl mb-6 overflow-hidden border border-secondary-600/30 relative">
+                    {post.image ? (
+                      <img 
+                        src={post.image}
+                        alt={post.imageAlt}
+                        class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                        decoding="async"
+                        onload="this.style.opacity='1'"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
+                        style="opacity: 0; transition: opacity 0.3s ease-in-out"
+                      />
+                    ) : null}
+                    
+                    <div class={`w-full h-full flex items-center justify-center ${post.image ? 'absolute inset-0' : ''}`} style={post.image ? 'display: none' : ''}>
+                      <span class="text-6xl opacity-60">💋</span>
+                    </div>
+                    
+                    {post.featured && (
+                      <div class="absolute top-4 right-4 bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-semibold border border-yellow-400/30">
+                        ⭐ À la une
+                      </div>
+                    )}
+                    
+
+                  </div>
+                  
+                  <div class="flex items-center gap-3 mb-4">
+                    <CategoryBadge name={post.category} color={post.category_color} size="sm" />
+                    <p class="text-sm text-secondary-400">{post.readTime}</p>
+                  </div>
+                  
+                  <h3 class={`${post.featured ? 'text-xl' : 'text-lg'} font-semibold text-white mb-3 group-hover:text-primary-400 transition-colors font-elegant`}>
+                    <a href={`/blog/${post.slug}`} data-title={post.title}>{post.title}</a>
+                  </h3>
+                  
+                  <!-- Related categories links -->
+                  {post.tags && post.tags.length > 0 && (
+                    <div class="mb-3">
+                      {post.tags.slice(0, 2).map((tag) => (
+                        <a href={`/blog?category=${tag.toLowerCase()}`} class="inline-block text-xs px-2 py-1 bg-secondary-800/50 text-secondary-300 rounded border border-secondary-600/30 hover:bg-primary-500/20 hover:text-primary-300 transition-colors mr-2">
+                          #{tag}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <p class="text-secondary-300 mb-4 line-clamp-3 leading-relaxed" data-excerpt={post.excerpt}>{post.excerpt}</p>
+                  
+                  <div class="flex items-center justify-between text-sm text-secondary-400">
+                    <p class="font-medium text-primary-300">{post.author}</p>
+                    <time datetime={post.publishedAt} data-translate={new Date(post.publishedAt).toLocaleDateString('fr-FR', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}>
+                      {new Date(post.publishedAt).toLocaleDateString('fr-FR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </time>
+                  </div>
+                  
+                  <!-- Stats row -->
+                  <div class="flex items-center gap-4 mt-4 pt-4 border-t border-secondary-700/30 text-sm text-secondary-400">
+                    <span class="flex items-center gap-1">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                      </svg>
+                      {post.views}
+                    </span>
+                    <span class="flex items-center gap-1">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                      </svg>
+                      {post.likes}
+                    </span>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </>
+      ) : (
+        <div class="text-center py-16">
+          <div class="text-6xl mb-4">📝</div>
+          <h2 class="text-2xl font-bold text-white mb-4">Aucun article trouvé</h2>
+          <p class="text-secondary-300 mb-8">
+            {search || category 
+              ? `Aucun article ne correspond à votre recherche. Essayez d'autres mots-clés ou consultez nos catégories.`
+              : 'Les articles apparaîtront ici une fois qu\'ils seront créés dans le panneau d\'administration.'
+            }
+          </p>
+          {(search || category) && (
+            <a 
+              href="/blog" 
+              class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors inline-flex items-center gap-2"
+            >
+              🔄 Voir tous les articles
+            </a>
+          )}
+        </div>
+      )}
+    </div>
+  </div>
+  </Layout>
+
+<script>
+// Client-side debugging and enhancement
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('🔍 Blog page loaded');
+  
+  // Get current URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const searchParam = urlParams.get('search');
+  const categoryParam = urlParams.get('category');
+  
+  console.log('🔍 Client-side URL params:', { search: searchParam, category: categoryParam });
+  
+  // Add click event listeners to category buttons for debugging
+  const categoryButtons = document.querySelectorAll('a[href*="category="]');
+  categoryButtons.forEach(button => {
+    button.addEventListener('click', function(e) {
+      console.log('🔍 Category button clicked:', this.href);
+    });
+  });
+  
+  // Enhanced search form handling with live suggestions
+  const searchForm = document.getElementById('searchForm');
+  const searchInput = document.getElementById('searchInput');
+  const searchSuggestions = document.getElementById('searchSuggestions');
+  
+  if (searchForm && searchInput && searchSuggestions) {
+    console.log('🔍 Search components found:', { searchForm, searchInput, searchSuggestions });
+    
+    // Get articles data for search suggestions
+    const articlesData = Array.from(document.querySelectorAll('article')).map(article => {
+      const titleEl = article.querySelector('h2 a');
+      const excerptEl = article.querySelector('[data-excerpt]');
+      const categoryEl = article.querySelector('[data-category]');
+      const authorEl = article.querySelector('[data-author]');
+      
+      return {
+        title: article.dataset.title || (titleEl ? titleEl.textContent.trim() : ''),
+        excerpt: article.dataset.excerpt || (excerptEl ? excerptEl.textContent.trim() : ''),
+        category: article.dataset.category || '',
+        author: article.dataset.author || '',
+        slug: article.dataset.slug || '',
+        url: titleEl ? titleEl.href : ''
+      };
+    });
+    
+    console.log('🔍 Articles data for search:', articlesData);
+    
+    let currentFocus = -1;
+    let filteredArticles = [];
+    
+    // Search input event handlers
+    searchInput.addEventListener('input', handleSearchInput);
+    searchInput.addEventListener('keydown', handleKeydown);
+    searchInput.addEventListener('focus', handleFocus);
+    
+    // Close suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
+        hideSuggestions();
+      }
+    });
+    
+    function handleSearchInput() {
+      const query = searchInput.value.trim();
+      
+      if (query.length === 0) {
+        hideSuggestions();
+        return;
+      }
+      
+      if (query.length < 2) {
+        hideSuggestions();
+        return;
+      }
+
+      // Filter articles based on search query
+      filteredArticles = articlesData.filter(article => {
+        const searchLower = query.toLowerCase();
+        const titleMatch = article.title.toLowerCase().includes(searchLower);
+        const excerptMatch = article.excerpt.toLowerCase().includes(searchLower);
+        const categoryMatch = article.category.toLowerCase().includes(searchLower);
+        const authorMatch = article.author.toLowerCase().includes(searchLower);
+        
+        return titleMatch || excerptMatch || categoryMatch || authorMatch;
+      });
+
+      console.log('🔍 Search query:', query);
+      console.log('🔍 Filtered results:', filteredArticles.length);
+      
+      displaySearchSuggestions(filteredArticles, query);
+    }
+    
+    function handleKeydown(e) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        currentFocus = Math.min(currentFocus + 1, filteredArticles.length - 1);
+        updateFocus();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        currentFocus = Math.max(currentFocus - 1, -1);
+        updateFocus();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (currentFocus >= 0 && filteredArticles[currentFocus]) {
+          selectArticle(filteredArticles[currentFocus]);
+        } else if (searchInput.value.trim()) {
+          // Perform search with current input
+          searchForm.submit();
+        }
+      } else if (e.key === 'Escape') {
+        hideSuggestions();
+        searchInput.blur();
+      }
+    }
+    
+    function handleFocus() {
+      if (searchInput.value.trim().length >= 2) {
+        handleSearchInput();
+      }
+    }
+    
+    function displaySearchSuggestions(articles, query) {
+      if (articles.length === 0) {
+        searchSuggestions.innerHTML = `
+          <div class="p-4 text-center text-secondary-400">
+            <div class="text-2xl mb-2">🔍</div>
+            <p>Aucun article trouvé pour "${query}"</p>
+            <p class="text-sm mt-2">Essayez d'autres mots-clés</p>
+          </div>
+        `;
+        showSuggestions();
+        return;
+      }
+
+      const suggestionsHTML = articles.map((article, index) => {
+        const highlightedTitle = highlightSearchTerms(article.title, query);
+        const highlightedExcerpt = highlightSearchTerms(article.excerpt.substring(0, 100), query);
+        
+        return `
+          <div class="suggestion-item p-4 hover:bg-secondary-700/50 cursor-pointer transition-colors ${index === currentFocus ? 'bg-secondary-700/50' : ''}" 
+               data-article-slug="${article.slug}">
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+                📄
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="font-semibold text-white mb-1">${highlightedTitle}</div>
+                <div class="text-sm text-secondary-300 mb-2">${highlightedExcerpt}...</div>
+                <div class="flex items-center gap-2 text-xs text-secondary-400">
+                  <span>${article.category}</span>
+                  <span>•</span>
+                  <span>${article.author}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      const scrollIndicator = articles.length > 5 ? `
+        <div class="p-3 text-center text-secondary-400 text-sm border-t border-secondary-600/30">
+          💡 Utilisez ↑↓ pour naviguer • Appuyez sur Entrée pour sélectionner
+        </div>
+      ` : '';
+      
+      searchSuggestions.innerHTML = suggestionsHTML + scrollIndicator;
+      
+      // Add click handlers to suggestion items
+      searchSuggestions.querySelectorAll('.suggestion-item').forEach((item, index) => {
+        item.addEventListener('click', () => {
+          selectArticle(articles[index]);
+        });
+      });
+      
+      showSuggestions();
+    }
+    
+    function selectArticle(article) {
+      console.log('🎯 Selected article:', article);
+      hideSuggestions();
+      searchInput.value = article.title;
+      
+      // Navigate to the article
+      if (article.url) {
+        window.location.href = article.url;
+      }
+    }
+    
+    function highlightSearchTerms(text, query) {
+      if (!text || !query) return text;
+      const regex = new RegExp(`(${query})`, 'gi');
+      return text.replace(regex, '<mark class="bg-primary-500/30 text-primary-200 px-1 rounded">$1</mark>');
+    }
+    
+    function updateFocus() {
+      const items = searchSuggestions.querySelectorAll('.suggestion-item');
+      items.forEach((item, index) => {
+        item.classList.toggle('bg-secondary-700/50', index === currentFocus);
+      });
+    }
+    
+    function showSuggestions() {
+      searchSuggestions.classList.remove('hidden');
+    }
+    
+    function hideSuggestions() {
+      searchSuggestions.classList.add('hidden');
+      currentFocus = -1;
+    }
+    
+    // Form submission handling
+    searchForm.addEventListener('submit', function(e) {
+      const searchValue = searchInput.value.trim();
+      
+      console.log('🔍 Search form submitted');
+      console.log('🔍 Search value:', searchValue);
+      
+      if (!searchValue || searchValue.length < 2) {
+        e.preventDefault();
+        console.log('🔍 Search validation failed - preventing submission');
+        alert('Veuillez saisir au moins 2 caractères pour la recherche.');
+        return false;
+      }
+      
+      console.log('🔍 Search form submission allowed');
+      hideSuggestions();
+    });
+    
+    // Add keyboard shortcuts
+    searchInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        this.value = '';
+        this.blur();
+        hideSuggestions();
+        console.log('🔍 Search cleared with Escape key');
+      }
+    });
+    
+  } else {
+    console.error('❌ Search components not found!', { searchForm, searchInput, searchSuggestions });
+  }
+  
+  // Add search result highlighting
+  if (searchParam) {
+    console.log('🔍 Highlighting search results for:', searchParam);
+    const searchLower = searchParam.toLowerCase();
+    
+    // Highlight matching text in titles and excerpts
+    const titles = document.querySelectorAll('h2 a');
+    const excerpts = document.querySelectorAll('.line-clamp-3');
+    
+    titles.forEach(title => {
+      const text = title.textContent;
+      if (text.toLowerCase().includes(searchLower)) {
+        title.style.backgroundColor = 'rgba(236, 72, 153, 0.2)';
+        title.style.padding = '2px 4px';
+        title.style.borderRadius = '4px';
+        console.log('🔍 Highlighted title:', text);
+      }
+    });
+    
+    excerpts.forEach(excerpt => {
+      const text = excerpt.textContent;
+      if (text.toLowerCase().includes(searchLower)) {
+        excerpt.style.backgroundColor = 'rgba(236, 72, 153, 0.1)';
+        excerpt.style.padding = '4px';
+        excerpt.style.borderRadius = '4px';
+        console.log('🔍 Highlighted excerpt:', text);
+      }
+    });
+  }
+  
+  // Debug form elements
+  console.log('🔍 All forms on page:', document.forms);
+  console.log('🔍 Search input elements:', document.querySelectorAll('input[type="search"]'));
+  console.log('🔍 Form with GET method:', document.querySelectorAll('form[method="GET"]'));
+});
+</script>
+
+

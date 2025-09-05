@@ -1,0 +1,335 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+
+// Fetch real dashboard statistics from database
+let stats = {
+  totalViews: 0,
+  published: 0,
+  drafts: 0,
+  total: 0,
+  totalComments: 0,
+  totalLikes: 0
+};
+
+try {
+  const response = await fetch('http://localhost:4322/api/dashboard-stats');
+  const data = await response.json();
+  if (data.success) {
+    stats = data.stats;
+  } else {
+    console.error('❌ Failed to fetch dashboard stats:', data.error);
+  }
+} catch (error) {
+  console.error('❌ Error fetching dashboard stats:', error);
+}
+---
+
+<script>
+  // Check if user has a valid session
+  const sessionId = localStorage.getItem('sessionId');
+  
+  console.log('Dashboard: Checking session...', { sessionId: sessionId ? 'exists' : 'missing' });
+  
+  if (!sessionId) {
+    console.log('Dashboard: No session found, redirecting to login...');
+    window.location.href = '/';
+  } else {
+    console.log('Dashboard: Session found, proceeding...');
+  }
+</script>
+
+<AdminLayout title="Tableau de Bord - Mad2Moi Admin">
+  <!-- Enhanced Page Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Bienvenue sur votre Tableau de Bord</h1>
+        <p class="text-lg text-gray-600 dark:text-gray-300">Gérez votre blog et suivez vos performances en temps réel</p>
+      </div>
+      <div class="flex items-center space-x-4">
+        <div class="text-right">
+          <p class="text-sm text-gray-500 dark:text-gray-400">Dernière connexion</p>
+          <p class="text-lg font-semibold text-gray-900 dark:text-white" id="lastLogin">--</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Enhanced Stats Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Visitors Card -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200/50 dark:border-gray-700/50 card-hover dark:card-hover-dark backdrop-blur-sm">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Visiteurs Totaux</p>
+          <p class="text-3xl font-bold text-gray-900 dark:text-white">24,567</p>
+          <p class="text-sm text-green-600 dark:text-green-400 flex items-center mt-1">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+            </svg>
+            +12.5%
+          </p>
+        </div>
+        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+          </svg>
+        </div>
+      </div>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-3">Ce mois</p>
+    </div>
+
+    <!-- Page Views Card -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200/50 dark:border-gray-700/50 card-hover dark:card-hover-dark backdrop-blur-sm">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Vues Articles</p>
+          <p class="text-3xl font-bold text-gray-900 dark:text-white">{stats.totalViews.toLocaleString()}</p>
+          <p class="text-sm text-green-600 dark:text-green-400 flex items-center mt-1">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+            </svg>
+            {stats.totalLikes} likes
+          </p>
+        </div>
+        <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+        </div>
+      </div>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-3">Total</p>
+    </div>
+
+    <!-- Articles Card -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200/50 dark:border-gray-700/50 card-hover dark:card-hover-dark backdrop-blur-sm">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Articles Publiés</p>
+          <p class="text-3xl font-bold text-gray-900 dark:text-white">{stats.published}</p>
+          <p class="text-sm text-blue-600 dark:text-blue-400 flex items-center mt-1">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+            </svg>
+            {stats.total} total
+          </p>
+        </div>
+        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+          </svg>
+        </div>
+      </div>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-3">Total</p>
+    </div>
+
+    <!-- Comments Card -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200/50 dark:border-gray-700/50 card-hover dark:card-hover-dark backdrop-blur-sm">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Commentaires</p>
+          <p class="text-3xl font-bold text-gray-900 dark:text-white">{stats.totalComments}</p>
+          <p class="text-sm text-green-600 dark:text-green-400 flex items-center mt-1">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+            </svg>
+            {stats.drafts} brouillons
+          </p>
+        </div>
+        <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+          </svg>
+        </div>
+      </div>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-3">Total</p>
+    </div>
+  </div>
+
+  <!-- Enhanced Quick Actions Section -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <!-- Quick Actions -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-sm">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white">Actions Rapides</h2>
+        <button 
+          id="exportDashboardBtn"
+          class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 text-sm"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          <span>Exporter CSV</span>
+        </button>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <a href="/admin/new-article" class="p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl border border-blue-200/50 dark:border-blue-700/30 hover:from-blue-100 hover:to-blue-200 dark:hover:from-blue-800/30 dark:hover:to-blue-700/30 transition-all duration-300 group block">
+          <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+          </div>
+          <h3 class="font-semibold text-gray-900 dark:text-white text-sm">Nouvel Article</h3>
+          <p class="text-xs text-gray-600 dark:text-gray-400">Créer un article</p>
+        </a>
+
+        <a href="/admin/analytics" class="p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl border border-green-200/50 dark:border-green-700/30 hover:from-green-100 hover:to-green-200 dark:hover:from-green-800/30 dark:hover:to-green-700/30 transition-all duration-300 group block">
+          <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+          </div>
+          <h3 class="font-semibold text-gray-900 dark:text-white text-sm">Analyses</h3>
+          <p class="text-xs text-gray-600 dark:text-gray-400">Voir les stats</p>
+        </a>
+
+        <a href="/admin/subscribers" class="p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl border border-purple-200/50 dark:border-purple-700/30 hover:from-purple-100 hover:to-purple-200 dark:hover:from-purple-800/30 dark:hover:to-purple-700/30 transition-all duration-300 group block">
+          <div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+          </div>
+          <h3 class="font-semibold text-gray-900 dark:text-white text-sm">Abonnés</h3>
+          <p class="text-xs text-gray-600 dark:text-gray-400">Gérer la liste</p>
+        </a>
+
+        <a href="/admin/settings" class="p-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-xl border border-orange-200/50 dark:border-orange-700/30 hover:from-orange-100 hover:to-orange-200 dark:hover:from-orange-800/30 dark:hover:to-orange-700/30 transition-all duration-300 group block">
+          <div class="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+          </div>
+          <h3 class="font-semibold text-gray-900 dark:text-white text-sm">Paramètres</h3>
+          <p class="text-xs text-gray-600 dark:text-gray-400">Configurer</p>
+        </a>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-sm">
+      <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Activité Récente</h2>
+      <div class="space-y-4">
+        <div class="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+          <div class="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+            <svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+          </div>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-gray-900 dark:text-white">Nouvel article publié</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">"Comment optimiser votre blog"</p>
+          </div>
+          <span class="text-xs text-gray-400 dark:text-gray-500">2h</span>
+        </div>
+
+        <div class="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+          <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+            <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+          </div>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-gray-900 dark:text-white">Nouvel abonné</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Marie Dupont s'est abonnée</p>
+          </div>
+          <span class="text-xs text-gray-400 dark:text-gray-500">4h</span>
+        </div>
+
+        <div class="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+          <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
+            <svg class="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+          </div>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-gray-900 dark:text-white">Article mis à jour</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">"Guide du débutant" modifié</p>
+          </div>
+          <span class="text-xs text-gray-400 dark:text-gray-500">6h</span>
+        </div>
+
+        <div class="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+          <div class="w-8 h-8 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center">
+            <svg class="w-4 h-4 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-gray-900 dark:text-white">Sauvegarde automatique</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Base de données sauvegardée</p>
+          </div>
+          <span class="text-xs text-gray-400 dark:text-gray-500">1j</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Performance Chart Placeholder -->
+  <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-sm">
+    <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Performance du Blog</h2>
+    <div class="h-64 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center">
+      <div class="text-center">
+        <svg class="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+        </svg>
+        <p class="text-gray-500 dark:text-gray-400 text-lg font-medium">Graphique de Performance</p>
+        <p class="text-gray-400 dark:text-gray-500 text-sm">Les données de performance seront affichées ici</p>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  // Track and display real last login time
+  function updateLastLogin() {
+    const lastLoginElement = document.getElementById('lastLogin');
+    let lastLogin = localStorage.getItem('lastLogin');
+    
+    if (!lastLogin) {
+      // If no last login stored, set current time as first login
+      const now = new Date();
+      localStorage.setItem('lastLogin', now.toISOString());
+      lastLogin = now.toISOString();
+    }
+    
+    // Format the last login time
+    const lastLoginDate = new Date(lastLogin);
+    const now = new Date();
+    const timeDiff = now - lastLoginDate;
+    
+    // Format based on how long ago
+    let formattedTime;
+    if (timeDiff < 60000) { // Less than 1 minute
+      formattedTime = "À l'instant";
+    } else if (timeDiff < 3600000) { // Less than 1 hour
+      const minutes = Math.floor(timeDiff / 60000);
+      formattedTime = `Il y a ${minutes} min`;
+    } else if (timeDiff < 86400000) { // Less than 1 day
+      const hours = Math.floor(timeDiff / 3600000);
+      formattedTime = `Il y a ${hours}h`;
+    } else if (timeDiff < 604800000) { // Less than 1 week
+      const days = Math.floor(timeDiff / 86400000);
+      formattedTime = `Il y a ${days}j`;
+    } else {
+      // More than a week, show full date
+      formattedTime = lastLoginDate.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+    
+    lastLoginElement.textContent = formattedTime;
+  }
+
+  // Update last login display
+  updateLastLogin();
+  
+  // Update every minute to keep "À l'instant" and "Il y a X min" current
+  setInterval(updateLastLogin, 60000);
+</script>
+
+<script src="/scripts/export-csv.js" is:inline></script>
+

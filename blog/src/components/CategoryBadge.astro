@@ -1,0 +1,85 @@
+---
+interface Props {
+  name: string;
+  color?: string;
+  size?: 'sm' | 'md' | 'lg';
+  className?: string;
+}
+
+const { name, color, size = 'md', className = '' } = Astro.props;
+
+// Helper function to convert hex color to Tailwind CSS classes
+function getColorClasses(hexColor: string, size: string) {
+  // Default color if hex is invalid
+  const defaultClasses = {
+    sm: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+    md: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+    lg: 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+  };
+  
+  if (!hexColor || !hexColor.startsWith('#')) {
+    return defaultClasses[size];
+  }
+  
+  // Simple color mapping for common hex values
+  const colorMap: Record<string, Record<string, string>> = {
+    '#3B82F6': { // Blue
+      sm: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+      md: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+      lg: 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+    },
+    '#EF4444': { // Red
+      sm: 'bg-red-500/20 text-red-300 border-red-500/30',
+      md: 'bg-red-500/20 text-red-300 border-red-500/30',
+      lg: 'bg-red-500/20 text-red-300 border-red-500/30'
+    },
+    '#10B981': { // Green
+      sm: 'bg-green-500/20 text-green-300 border-green-500/30',
+      md: 'bg-green-500/20 text-green-300 border-green-500/30',
+      lg: 'bg-green-500/20 text-green-300 border-green-500/30'
+    },
+    '#F59E0B': { // Yellow
+      sm: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
+      md: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
+      lg: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
+    },
+    '#8B5CF6': { // Purple
+      sm: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+      md: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+      lg: 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+    },
+    '#EC4899': { // Pink
+      sm: 'bg-pink-500/20 text-pink-300 border-pink-500/30',
+      md: 'bg-pink-500/20 text-pink-300 border-pink-500/30',
+      lg: 'bg-pink-500/20 text-pink-300 border-pink-500/30'
+    },
+    '#06B6D4': { // Cyan
+      sm: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
+      md: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
+      lg: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30'
+    },
+    '#84CC16': { // Lime
+      sm: 'bg-lime-500/20 text-lime-300 border-lime-500/30',
+      md: 'bg-lime-500/20 text-lime-300 border-lime-500/30',
+      lg: 'bg-lime-500/20 text-lime-300 border-lime-500/30'
+    }
+  };
+  
+  return colorMap[hexColor.toUpperCase()]?.[size] || defaultClasses[size];
+}
+
+// Size-based classes
+const sizeClasses = {
+  sm: 'px-2 py-1 text-xs',
+  md: 'px-3 py-1 text-sm',
+  lg: 'px-4 py-2 text-base'
+};
+
+const colorClasses = getColorClasses(color || '#3B82F6', size);
+---
+
+<span class={`inline-flex items-center rounded-full font-medium border backdrop-blur-sm transition-all duration-300 hover:scale-105 ${sizeClasses[size]} ${colorClasses} ${className}`}>
+  {name}
+</span>
+
+

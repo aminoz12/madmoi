@@ -1,0 +1,137 @@
+---
+export interface Props {
+  url: string;
+  title: string;
+  description?: string;
+  image?: string;
+}
+
+const { url, title, description = '', image = '' } = Astro.props;
+
+const socialPlatforms = [
+  {
+    name: 'Facebook',
+    icon: '📘',
+    color: 'bg-blue-600 hover:bg-blue-700',
+    shareUrl: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`
+  },
+  {
+    name: 'X (Twitter)',
+    icon: '🐦',
+    color: 'bg-black hover:bg-gray-800',
+    shareUrl: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`
+  },
+  {
+    name: 'Instagram',
+    icon: '📷',
+    color: 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600',
+    shareUrl: `https://www.instagram.com/?url=${encodeURIComponent(url)}`
+  },
+  {
+    name: 'WhatsApp',
+    icon: '💬',
+    color: 'bg-green-600 hover:bg-green-700',
+    shareUrl: `https://wa.me/?text=${encodeURIComponent(title + ' ' + url)}`
+  },
+  {
+    name: 'Messenger',
+    icon: '💙',
+    color: 'bg-blue-500 hover:bg-blue-600',
+    shareUrl: `https://www.facebook.com/dialog/send?link=${encodeURIComponent(url)}&app_id=YOUR_APP_ID&redirect_uri=${encodeURIComponent(url)}`
+  },
+  {
+    name: 'Email',
+    icon: '📧',
+    color: 'bg-gray-600 hover:bg-gray-700',
+    shareUrl: `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(description + '\n\n' + url)}`
+  }
+];
+---
+
+<section class="p-8 bg-gradient-to-r from-secondary-800/50 to-secondary-900/50 rounded-2xl border border-secondary-700/30 shadow-xl">
+  <div class="text-center mb-8">
+    <h3 class="text-2xl font-bold text-white mb-2 font-elegant">📤 Partager cet article</h3>
+    <p class="text-secondary-300">Aidez-nous à faire connaître cet article en le partageant sur vos réseaux sociaux</p>
+  </div>
+  
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+    {socialPlatforms.map((platform) => (
+      <a
+        href={platform.shareUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class={`${platform.color} text-white p-4 rounded-xl font-medium transition-all duration-300 hover:scale-105 flex flex-col items-center gap-2 shadow-lg hover:shadow-xl`}
+        title={`Partager sur ${platform.name}`}
+      >
+        <span class="text-2xl">{platform.icon}</span>
+        <span class="text-sm font-medium">{platform.name}</span>
+      </a>
+    ))}
+  </div>
+  
+  <!-- Copy Link Button -->
+  <div class="p-6 bg-secondary-700/20 rounded-xl border border-secondary-600/20">
+    <h4 class="text-lg font-semibold text-white mb-4 text-center">🔗 Copier le lien</h4>
+    <div class="flex flex-col sm:flex-row items-center gap-4">
+      <input
+        type="text"
+        value={url}
+        readonly
+        class="flex-1 px-4 py-3 bg-secondary-700/50 border border-secondary-600/30 rounded-lg text-secondary-200 text-sm font-mono"
+        id="share-url-{title.replace(/\s+/g, '-').toLowerCase()}"
+      />
+      <button
+        onclick="copyToClipboard('share-url-{title.replace(/\s+/g, '-').toLowerCase()}')"
+        class="px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold rounded-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-2 whitespace-nowrap"
+        title="Copier le lien"
+      >
+        <span>📋</span>
+        <span>Copier le lien</span>
+      </button>
+    </div>
+    <div id="copy-success-{title.replace(/\s+/g, '-').toLowerCase()}" class="hidden mt-3 text-center">
+      <p class="text-green-400 text-sm font-medium">✅ Lien copié avec succès !</p>
+    </div>
+  </div>
+</section>
+
+<script>
+  function copyToClipboard(elementId: string) {
+    const element = document.getElementById(elementId) as HTMLInputElement;
+    if (element) {
+      element.select();
+      element.setSelectionRange(0, 99999); // Pour mobile
+      
+      try {
+        document.execCommand('copy');
+        showCopySuccess();
+      } catch (err) {
+        // Fallback pour les navigateurs modernes
+        navigator.clipboard.writeText(element.value).then(() => {
+          showCopySuccess();
+        }).catch(() => {
+          showCopyError();
+        });
+      }
+    }
+  }
+  
+  function showCopySuccess() {
+    const button = document.querySelector('[onclick*="copyToClipboard"]') as HTMLButtonElement;
+    if (button) {
+      const originalText = button.innerHTML;
+      button.innerHTML = '✅ Copié !';
+      button.classList.add('bg-green-600');
+      
+      setTimeout(() => {
+        button.innerHTML = originalText;
+        button.classList.remove('bg-green-600');
+      }, 2000);
+    }
+  }
+  
+  function showCopyError() {
+    alert('Erreur lors de la copie. Veuillez copier manuellement le lien.');
+  }
+</script>
+

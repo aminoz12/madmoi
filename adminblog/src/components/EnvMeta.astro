@@ -1,0 +1,9 @@
+---
+// Component to inject environment variables as meta tags for frontend access
+const openaiApiKey = import.meta.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY || '';
+---
+
+<!-- Environment variables as meta tags for frontend access -->
+{openaiApiKey && (
+  <meta name="openai-api-key" content={openaiApiKey} />
+)}

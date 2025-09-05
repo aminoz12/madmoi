@@ -1,0 +1,72 @@
+# Mad2Moi Blog - Robots.txt
+# Optimisé pour l'indexation SEO
+
+User-agent: *
+Allow: /
+
+# Allow all content pages
+Allow: /about
+Allow: /contact
+Allow: /faq
+Allow: /privacy
+Allow: /terms
+Allow: /sitemap
+Allow: /blog
+
+# Allow assets
+Allow: /images/
+Allow: /css/
+Allow: /js/
+Allow: /fonts/
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /private/
+Disallow: /api/
+Disallow: /.git/
+Disallow: /.astro/
+Disallow: /node_modules/
+Disallow: /src/
+Disallow: /scripts/
+
+# Disallow temporary files
+Disallow: /*.tmp$
+Disallow: /*.log$
+Disallow: /*.bak$
+
+# Allow sitemaps
+Sitemap: https://mad2moi-blog.com/sitemap.xml
+Sitemap: https://mad2moi-blog.com/rss.xml
+
+# Crawl delay (optional)
+Crawl-delay: 1
+
+# Specific rules for major search engines
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0.5
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 1
+
+# Block bad bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+

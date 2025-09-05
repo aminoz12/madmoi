@@ -1,0 +1,699 @@
+// Admin Chat System - Real-time chat management with GPT-5 integration
+class AdminChatSystem {
+  constructor() {
+    this.ws = null;
+
+    // Conversation courante
+    this.currentConversationId = null;
+    this.currentSessionId = null;
+
+    // Admin courant
+    this.adminName = 'Admin'; // TODO: Remplacer par le nom de l’admin connecté
+
+    // États
+    this.isConnected = false;
+    this.adminAvailable = false;
+
+    // Service IA
+    this.gptService = null;
+
+    this.initializeElements();
+    this.initializeWebSocket();
+    this.loadInitialData();
+    this.setupEventListeners();
+  }
+
+  /* ===================== INIT UI ===================== */
+  initializeElements() {
+    // En-têtes / status
+    this.adminAvailabilityToggle = document.getElementById('adminAvailabilityToggle');
+    this.adminStatusIndicator = document.getElementById('adminStatusIndicator');
+    this.gptStatusIndicator = document.getElementById('gptStatusIndicator');
+
+    // Listes / zones
+    this.searchConversations = document.getElementById('searchConversations');
+    this.conversationsContainer = document.getElementById('conversationsContainer');
+    this.chatHeader = document.getElementById('chatHeader');
+    this.messagesContainer = document.getElementById('messagesContainer');
+
+    // Entrée message
+    this.messageInput = document.getElementById('messageInput');
+    this.sendButton = document.getElementById('sendButton');
+
+    // IA
+    this.gptResponseBtn = document.getElementById('gptResponseBtn');
+    this.gptSuggestionPanel = document.getElementById('gptSuggestionPanel');
+    this.gptSuggestionText = document.getElementById('gptSuggestionText');
+    this.approveGptBtn = document.getElementById('approveGptBtn');
+    this.editGptBtn = document.getElementById('editGptBtn');
+    this.rejectGptBtn = document.getElementById('rejectGptBtn');
+
+    // Typing & notifications
+    this.typingIndicator = document.getElementById('typingIndicator');
+    this.notificationToast = document.getElementById('notificationToast');
+
+    // Extras (optionnels)
+    this.emojiPickerBtn = document.getElementById('emojiPickerBtn');
+    this.attachmentBtn = document.getElementById('attachmentBtn');
+    this.imageBtn = document.getElementById('imageBtn');
+  }
+
+  /* ===================== WEBSOCKET ===================== */
+  async initializeWebSocket() {
+    try {
+      if (!window.WebSocket) throw new Error('WebSocket not supported');
+
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}/ws/chat`;
+
+      this.ws = new WebSocket(wsUrl);
+
+      this.ws.onopen = () => {
+        this.isConnected = true;
+        this.updateConnectionStatus(true);
+        this.registerAdmin();
+      };
+
+      this.ws.onmessage = (event) => {
+        const msg = this.safeParse(event.data);
+        if (msg) this.handleWebSocketMessage(msg);
+      };
+
+      this.ws.onclose = () => {
+        this.isConnected = false;
+        this.updateConnectionStatus(false);
+        setTimeout(() => { if (!this.isConnected) this.initializeWebSocket(); }, 5000);
+      };
+
+      this.ws.onerror = () => {
+        this.updateConnectionStatus(false);
+      };
+    } catch (error) {
+      console.error('❌ Failed to initialize WebSocket:', error);
+      this.showNotification('Erreur de connexion WebSocket', 'error');
+    }
+  }
+
+  registerAdmin() {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({
+        type: 'register_admin',
+        data: { adminId: Date.now(), name: this.adminName }
+      }));
+    }
+  }
+
+  handleWebSocketMessage(message) {
+    const type = message.type;
+
+    switch (type) {
+      case 'admin_status_update': {
+        this.updateAdminStatus(!!message.available);
+        break;
+      }
+
+      case 'new_user_message':
+      case 'new_message': {
+        // Rafraîchit la liste des conversations
+        this.loadConversations();
+
+        // Si c'est la conversation ouverte, injecte le message
+        const convId = message.conversation_id || message.conversationId;
+        if (this.currentConversationId && convId == this.currentConversationId) {
+          this.addMessageToUI(this.normalizeMessage(message));
+        }
+        break;
+      }
+
+      case 'user_typing': {
+        const sid = message.session_id || message.sessionId;
+        this.showTypingIndicator(sid, true);
+        break;
+      }
+
+      case 'user_stopped_typing': {
+        const sid = message.session_id || message.sessionId;
+        this.showTypingIndicator(sid, false);
+        break;
+      }
+
+      case 'gpt_response_sent': {
+        this.showNotification('Réponse IA envoyée', 'success');
+        break;
+      }
+
+      case 'admin_message_sent': {
+        this.showNotification('Message admin envoyé', 'success');
+        break;
+      }
+
+      default:
+        // silencieux
+        break;
+    }
+  }
+
+  /* ===================== DATA LOAD ===================== */
+  async loadInitialData() {
+    try {
+      const statusResponse = await fetch('/api/admin/chat?action=status');
+      const statusData = await statusResponse.json().catch(() => ({}));
+      this.updateAdminStatus(!!(statusData && statusData.available));
+
+      await this.loadConversations();
+      await this.testGPTService();
+    } catch (error) {
+      console.error('❌ Error loading initial data:', error);
+    }
+  }
+
+  async loadConversations() {
+    try {
+      const res = await fetch('/api/admin/chat?action=conversations');
+      const raw = await res.json();
+      const conversations = Array.isArray(raw) ? raw : [];
+      this.renderConversations(conversations.map(c => this.normalizeConversation(c)));
+    } catch (error) {
+      console.error('❌ Error loading conversations:', error);
+      this.conversationsContainer.innerHTML = `
+        <div class="p-4 text-center text-red-500">Erreur de chargement des conversations</div>`;
+    }
+  }
+
+  /* ===================== NORMALISATION ===================== */
+  normalizeConversation(conv) {
+    return {
+      conversation_id: conv.conversation_id ?? conv.id ?? conv.conversationId,
+      session_id: conv.session_id ?? conv.sessionId ?? null,
+      name: conv.name ?? conv.user_name ?? conv.display_name ?? conv.visitor_name ?? 'Anonyme',
+      email: conv.email ?? conv.user_email ?? conv.visitor_email ?? 'Aucun email',
+      last_message_at: conv.last_message_at ?? conv.updated_at ?? conv.created_at ?? null,
+      message_count: conv.message_count ?? conv.total_messages ?? conv.messages_count ?? 0
+    };
+  }
+
+  deriveSender(m) {
+    // Récupération multi-champs + normalisation
+    const raw =
+      m.sender ?? m.sender_type ?? m.role ?? m.type ?? m.author_type ?? m.source ?? m.from ?? null;
+    let s = raw ? String(raw).toLowerCase() : null;
+
+    if (!s) {
+      if (m.is_admin === true || m.is_staff === true) s = 'admin';
+      else if (m.is_bot === true || m.ai === true || m.sender_name === 'gpt') s = 'gpt';
+      else s = 'user';
+    } else {
+      if (['admin', 'staff', 'operator', 'support', 'moderator'].includes(s)) s = 'admin';
+      else if (['gpt', 'ai', 'bot', 'assistant', 'model'].includes(s)) s = 'gpt';
+      else s = 'user';
+    }
+    return s;
+  }
+
+  normalizeMessage(m) {
+    const text = m.message ?? m.content ?? m.text ?? '';
+    const ts = m.timestamp ?? m.created_at ?? m.updated_at ?? null;
+    const sender = this.deriveSender(m);
+
+    return {
+      id: m.id ?? m.message_id ?? Date.now(),
+      message: String(text),
+      sender,
+      timestamp: ts,
+      has_attachment: !!(m.attachment_url || m.attachment_type),
+      attachment_type: m.attachment_type ?? null,
+      attachment_url: m.attachment_url ?? null
+    };
+  }
+
+  /* ===================== RENDER ===================== */
+  renderConversations(conversations) {
+    if (!conversations.length) {
+      this.conversationsContainer.innerHTML = `
+        <div class="p-4 text-center text-gray-500 dark:text-gray-400">
+          Aucune conversation active
+        </div>`;
+      return;
+    }
+
+    this.conversationsContainer.innerHTML = conversations.map(conv => `
+      <div class="conversation-item p-3 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+           data-conversation-id="${conv.conversation_id}"
+           data-session-id="${conv.session_id}">
+        <div class="flex items-center justify-between">
+          <div class="flex-1 min-w-0">
+            <h4 class="text-sm font-medium text-gray-900 dark:text-white truncate">${this.escapeHtml(conv.name)}</h4>
+            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">${this.escapeHtml(conv.email)}</p>
+          </div>
+          <div class="flex flex-col items-end">
+            <span class="text-xs text-gray-500 dark:text-gray-400">${this.formatTimestamp(conv.last_message_at)}</span>
+            <span class="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-black px-2 py-1 rounded-full">${conv.message_count}</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    this.conversationsContainer.querySelectorAll('.conversation-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const conversationId = item.dataset.conversationId;
+        const sessionId = item.dataset.sessionId || null;
+        this.selectConversation(conversationId, sessionId, item);
+      });
+    });
+  }
+
+  async selectConversation(conversationId, sessionId, itemEl) {
+    try {
+      this.currentConversationId = conversationId;
+      this.currentSessionId = sessionId;
+
+      // UI header depuis la tuile
+      if (itemEl) {
+        const userName = itemEl.querySelector('h4')?.textContent || 'Anonyme';
+        const userEmail = itemEl.querySelector('p')?.textContent || 'Aucun email';
+        document.getElementById('currentUserName').textContent = userName;
+        document.getElementById('currentUserInfo').textContent = userEmail;
+
+        this.conversationsContainer.querySelectorAll('.conversation-item')
+          .forEach(i => i.classList.remove('bg-blue-50', 'dark:bg-blue-900/20'));
+        itemEl.classList.add('bg-blue-50', 'dark:bg-blue-900/20');
+      }
+
+      this.enableChatInput();
+
+      // CHARGEMENT DES MESSAGES PAR conversation_id
+      const res = await fetch(`/api/admin/chat?action=messages&conversation_id=${encodeURIComponent(conversationId)}`);
+      const raw = await res.json();
+      const messages = Array.isArray(raw) ? raw.map(m => this.normalizeMessage(m)) : [];
+      this.renderMessages(messages);
+
+    } catch (error) {
+      console.error('❌ Error selecting conversation:', error);
+      this.showNotification('Erreur lors de l’ouverture de la conversation', 'error');
+    }
+  }
+
+  enableChatInput() {
+    this.messageInput.disabled = false;
+    this.sendButton.disabled = false;
+    this.gptResponseBtn.disabled = false;
+  }
+
+  renderMessages(messages) {
+    if (!messages || !messages.length) {
+      this.messagesContainer.innerHTML = `
+        <div class="text-center text-gray-500 dark:text-gray-400 py-8">
+          Aucun message dans cette conversation
+        </div>`;
+      return;
+    }
+    this.messagesContainer.innerHTML = messages.map(msg => this.renderMessage(msg)).join('');
+    this.scrollToBottom();
+  }
+
+  renderMessage(message) {
+    const isUser = message.sender === 'user';
+    const isAdmin = message.sender === 'admin';
+    const isGPT = message.sender === 'gpt';
+
+    const bubble = isUser
+      ? 'bg-blue-100 dark:bg-blue-900/20'
+      : isAdmin
+        ? 'bg-blue-100 dark:bg-blue-900/20'
+        : 'bg-blue-100 dark:bg-blue-900/20';
+
+    const who = isUser ? 'Utilisateur' : isAdmin ? 'Admin' : 'GPT-5';
+    const timestamp = this.formatTimestamp(message.timestamp);
+
+    return `
+      <div class="message-item ${isUser ? 'text-right' : 'text-left'}">
+        <div class="inline-block max-w-xs lg:max-w-md">
+          <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">${who} • ${timestamp}</div>
+          <div class="px-4 py-2 rounded-lg ${bubble} text-gray-900 dark:text-white">
+            ${this.escapeHtml(message.message)}
+            ${message.has_attachment ? this.renderAttachment(message) : ''}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  renderAttachment(message) {
+    if (message.attachment_type && message.attachment_type.startsWith('image/')) {
+      return `<img src="${message.attachment_url}" alt="Image" class="mt-2 max-w-full rounded">`;
+    }
+    return `<div class="mt-2 text-sm text-blue-600 dark:text-blue-400">📎 Pièce jointe</div>`;
+  }
+
+  /* ===================== ENVOI & PERSISTANCE ===================== */
+  async sendMessage() {
+    if (!this.currentConversationId || !this.messageInput.value.trim()) return;
+
+    const text = this.messageInput.value.trim();
+    this.messageInput.value = '';
+
+    // 1) Persist-first HTTP (DB), puis repli WS
+    try {
+      const response = await fetch('/api/admin/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'send_message',
+          conversation_id: this.currentConversationId,
+          session_id: this.currentSessionId,
+          sender: 'admin',         // ✅ en clair
+          sender_type: 'admin',    // ✅ pour les backends qui attendent sender_type
+          message: text,
+          admin_name: this.adminName
+        })
+      });
+
+      if (!response.ok) throw new Error('HTTP persist failed');
+
+      // Le backend devrait renvoyer { message: {...} }
+      const payload = await response.json().catch(() => ({}));
+      const saved = payload?.message ? this.normalizeMessage(payload.message) : {
+        id: Date.now(),
+        message: text,
+        sender: 'admin',
+        timestamp: new Date().toISOString()
+      };
+
+      this.addMessageToUI(saved);
+
+      // Optionnel : ping WS pour signaler l'envoi
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        this.ws.send(JSON.stringify({
+          type: 'admin_message_sent',
+          data: { conversation_id: this.currentConversationId }
+        }));
+      }
+
+    } catch (error) {
+      console.warn('HTTP persist failed, falling back to WS…', error);
+
+      // 2) Repli WebSocket si dispo
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        this.ws.send(JSON.stringify({
+          type: 'send_message',
+          data: {
+            conversation_id: this.currentConversationId,
+            session_id: this.currentSessionId,
+            sender: 'admin',
+            sender_type: 'admin', // ✅
+            message: text,
+            admin_name: this.adminName
+          }
+        }));
+      }
+
+      // Ajout optimiste (au cas où)
+      this.addMessageToUI({
+        id: Date.now(),
+        message: text,
+        sender: 'admin',
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
+
+  addMessageToUI(message) {
+    const msg = this.normalizeMessage(message);
+    this.messagesContainer.insertAdjacentHTML('beforeend', this.renderMessage(msg));
+    this.scrollToBottom();
+  }
+
+  scrollToBottom() {
+    this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+  }
+
+  /* ===================== IA (SUGGESTION / APPROBATION) ===================== */
+  async generateGPTResponse() {
+    if (!this.currentConversationId) return;
+
+    // Cherche le dernier message utilisateur (aligné à droite)
+    const items = Array.from(this.messagesContainer.querySelectorAll('.message-item'));
+    const lastUser = items.reverse().find(m => m.classList.contains('text-right'));
+    const lastUserText = lastUser?.querySelector('.px-4.py-2')?.textContent?.trim() || '';
+
+    try {
+      const reply = await this.ensureGptService().suggestReply({
+        conversation_id: this.currentConversationId,
+        last_user_message: lastUserText
+      });
+
+      this.gptSuggestionText.value = reply || '';
+      this.gptSuggestionPanel.classList.remove('hidden');
+    } catch (e) {
+      console.error('❌ Error generating GPT response:', e);
+      this.showNotification('Erreur lors de la génération de la réponse IA', 'error');
+    }
+  }
+
+  async approveGPTResponse() {
+    if (!this.currentConversationId) return;
+
+    const text = this.gptSuggestionText.value.trim();
+    if (!text) return;
+
+    // Même stratégie : persist-first HTTP, repli WS
+    try {
+      const response = await fetch('/api/admin/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'send_message',
+          conversation_id: this.currentConversationId,
+          session_id: this.currentSessionId,
+          sender: 'gpt',
+          sender_type: 'gpt', // ✅
+          message: text,
+          admin_name: this.adminName
+        })
+      });
+
+      if (!response.ok) throw new Error('HTTP persist failed (gpt)');
+
+      const payload = await response.json().catch(() => ({}));
+      const saved = payload?.message ? this.normalizeMessage(payload.message) : {
+        id: Date.now(),
+        message: text,
+        sender: 'gpt',
+        timestamp: new Date().toISOString()
+      };
+
+      this.gptSuggestionPanel.classList.add('hidden');
+      this.addMessageToUI(saved);
+
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        this.ws.send(JSON.stringify({
+          type: 'gpt_response_sent',
+          data: { conversation_id: this.currentConversationId }
+        }));
+      }
+
+    } catch (error) {
+      console.warn('HTTP persist failed (gpt), falling back to WS…', error);
+
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        this.ws.send(JSON.stringify({
+          type: 'approve_gpt_response',
+          data: {
+            conversation_id: this.currentConversationId,
+            session_id: this.currentSessionId,
+            sender: 'gpt',
+            sender_type: 'gpt', // ✅
+            message: text
+          }
+        }));
+      }
+
+      this.gptSuggestionPanel.classList.add('hidden');
+      this.addMessageToUI({
+        id: Date.now(),
+        message: text,
+        sender: 'gpt',
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
+
+  editGPTResponse() { this.gptSuggestionText.focus(); }
+  rejectGPTResponse() { this.gptSuggestionPanel.classList.add('hidden'); this.gptSuggestionText.value = ''; }
+
+  async ensureGptService() {
+    if (this.gptService) return this.gptService;
+
+    // 1) Service global (si déjà fourni par ta page)
+    if (window.GPT5Service) {
+      try {
+        this.gptService = new GPT5Service();
+        const isValid = await this.gptService.testApiKey();
+        return this.gptService;
+      } catch (_) {}
+    }
+
+    // 2) Fallback minimal via API interne
+    this.gptService = {
+      testApiKey: async () => true,
+      suggestReply: async ({ conversation_id, last_user_message }) => {
+        // Si tu as une route serveur /api/admin/ai, elle peut renvoyer { reply: "..." }
+        try {
+          const r = await fetch('/api/admin/ai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ conversation_id, last_user_message })
+          });
+          if (r.ok) {
+            const j = await r.json();
+            return j?.reply || '';
+          }
+        } catch (_) {}
+        // Sinon, petit backup local
+        return `Je vous remercie pour votre message. Voici une première réponse automatique. Pouvez-vous préciser votre demande ?`;
+      }
+    };
+
+    return this.gptService;
+  }
+
+  async testGPTService() {
+    try {
+      const svc = this.ensureGptService();
+      const ok = (await svc.testApiKey?.()) !== false;
+      this.gptStatusIndicator.className = `w-3 h-3 ${ok ? 'bg-green-500' : 'bg-red-500'} rounded-full`;
+      this.gptStatusIndicator.nextElementSibling.textContent = ok ? 'GPT-5: Prêt' : 'GPT-5: Erreur API';
+    } catch {
+      this.gptStatusIndicator.className = 'w-3 h-3 bg-red-500 rounded-full';
+      this.gptStatusIndicator.nextElementSibling.textContent = 'GPT-5: Erreur';
+    }
+  }
+
+  /* ===================== STATUTS & UI ===================== */
+  async updateAdminAvailability(available) {
+    try {
+      const response = await fetch('/api/admin/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'availability', available })
+      });
+      if (!response.ok) throw new Error('Failed to update availability');
+
+      this.updateAdminStatus(available);
+
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        this.ws.send(JSON.stringify({ type: 'admin_availability', data: { available } }));
+      }
+    } catch (error) {
+      console.error('❌ Error updating admin availability:', error);
+      this.showNotification('Erreur lors de la mise à jour de la disponibilité', 'error');
+    }
+  }
+
+  updateAdminStatus(available) {
+    this.adminAvailable = available;
+    this.adminAvailabilityToggle.checked = available;
+    if (available) {
+      this.adminStatusIndicator.className = 'w-3 h-3 bg-green-500 rounded-full';
+      this.adminStatusIndicator.nextElementSibling.textContent = 'Admin: En ligne';
+    } else {
+      this.adminStatusIndicator.className = 'w-3 h-3 bg-red-500 rounded-full';
+      this.adminStatusIndicator.nextElementSibling.textContent = 'Admin: Hors ligne';
+    }
+  }
+
+  updateConnectionStatus(connected) {
+    if (connected) {
+      this.gptStatusIndicator.className = 'w-3 h-3 bg-green-500 rounded-full';
+      this.gptStatusIndicator.nextElementSibling.textContent = 'GPT-5: Connecté';
+    } else {
+      this.gptStatusIndicator.className = 'w-3 h-3 bg-red-500 rounded-full';
+      this.gptStatusIndicator.nextElementSibling.textContent = 'GPT-5: Déconnecté';
+    }
+  }
+
+  showTypingIndicator(sessionId, isTyping) {
+    if (this.currentSessionId && this.currentSessionId === sessionId) {
+      this.typingIndicator.classList.toggle('hidden', !isTyping);
+    }
+  }
+
+  showNotification(message, type = 'info') {
+    const notificationText = document.getElementById('notificationText');
+    if (notificationText) notificationText.textContent = message;
+
+    this.notificationToast.className =
+      `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50 ${
+        type === 'error' ? 'bg-red-600' :
+        type === 'success' ? 'bg-green-600' :
+        type === 'warning' ? 'bg-yellow-600' : 'bg-blue-600'
+      } text-white`;
+
+    this.notificationToast.classList.remove('translate-x-full');
+    setTimeout(() => this.notificationToast.classList.add('translate-x-full'), 5000);
+  }
+
+  formatTimestamp(ts) {
+    if (!ts) return '';
+    const date = new Date(ts);
+    if (Number.isNaN(date.getTime())) return '';
+    const now = new Date();
+    const diffH = (now - date) / 36e5;
+    if (diffH < 1) return 'À l’instant';
+    if (diffH < 24) return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text ?? '';
+    return div.innerHTML;
+  }
+
+  safeParse(str) {
+    try { return JSON.parse(str); } catch { return null; }
+  }
+
+  /* ===================== ÉCOUTEURS ===================== */
+  setupEventListeners() {
+    // Envoi message
+    this.sendButton.addEventListener('click', () => this.sendMessage());
+    this.messageInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.sendMessage(); }
+    });
+
+    // IA
+    this.gptResponseBtn.addEventListener('click', () => this.generateGPTResponse());
+    this.approveGptBtn.addEventListener('click', () => this.approveGPTResponse());
+    this.editGptBtn.addEventListener('click', () => this.editGPTResponse()); // ✅ correct
+    this.rejectGptBtn.addEventListener('click', () => this.rejectGPTResponse());
+
+    // Dispo admin
+    this.adminAvailabilityToggle.addEventListener('change', (e) => this.updateAdminAvailability(e.target.checked));
+
+    // Recherche conv
+    this.searchConversations.addEventListener('input', (e) => this.filterConversations(e.target.value));
+
+    // Emoji (simple)
+    if (this.emojiPickerBtn) {
+      this.emojiPickerBtn.addEventListener('click', () => {
+        const emojis = ['😊', '👍', '❤️', '🎉', '🔥', '💯', '✨', '🚀'];
+        const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+        this.messageInput.value += randomEmoji;
+        this.messageInput.focus();
+      });
+    }
+  }
+
+  filterConversations(query) {
+    const items = this.conversationsContainer.querySelectorAll('.conversation-item');
+    const q = (query || '').toLowerCase();
+    items.forEach(item => {
+      const userName = (item.querySelector('h4')?.textContent || '').toLowerCase();
+      const userEmail = (item.querySelector('p')?.textContent || '').toLowerCase();
+      item.style.display = (userName.includes(q) || userEmail.includes(q)) ? 'block' : 'none';
+    });
+  }
+}
+
+/* ===================== BOOT ===================== */
+document.addEventListener('DOMContentLoaded', () => new AdminChatSystem());

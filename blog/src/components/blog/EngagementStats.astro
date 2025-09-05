@@ -1,0 +1,199 @@
+---
+export interface Props {
+  postSlug: string;
+  likes?: number;
+  shares?: number;
+  comments?: number;
+  bookmarks?: number;
+}
+
+const { postSlug, likes = 0, shares = 0, comments = 0, bookmarks = 0 } = Astro.props;
+---
+
+<div class="p-6 bg-gradient-to-r from-secondary-800/50 to-secondary-900/50 rounded-2xl border border-secondary-700/30 shadow-xl">
+  <h3 class="text-xl font-semibold text-white mb-6 text-center font-elegant">
+    📊 Statistiques d'Engagement
+  </h3>
+  
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
+    <!-- Likes -->
+    <div class="text-center p-4 bg-secondary-700/20 rounded-xl border border-secondary-600/20 hover:border-primary-500/30 transition-all duration-200 group">
+      <button 
+        class="w-full flex flex-col items-center gap-2 text-secondary-300 hover:text-primary-400 transition-all duration-200 group-hover:scale-105"
+        onclick="toggleLike('{postSlug}')"
+        id="like-btn-{postSlug}"
+      >
+        <span class="text-3xl group-hover:scale-110 transition-transform duration-200">❤️</span>
+        <span class="font-bold text-lg" id="like-count-{postSlug}">{likes}</span>
+        <span class="text-sm opacity-80">J'aime</span>
+      </button>
+    </div>
+    
+    <!-- Comments -->
+    <div class="text-center p-4 bg-secondary-700/20 rounded-xl border border-secondary-600/20">
+      <div class="w-full flex flex-col items-center gap-2 text-secondary-300">
+        <span class="text-3xl">💬</span>
+        <span class="font-bold text-lg">{comments}</span>
+        <span class="text-sm opacity-80">Commentaires</span>
+      </div>
+    </div>
+    
+    <!-- Shares -->
+    <div class="text-center p-4 bg-secondary-700/20 rounded-xl border border-secondary-600/20">
+      <div class="w-full flex flex-col items-center gap-2 text-secondary-300">
+        <span class="text-3xl">📤</span>
+        <span class="font-bold text-lg">{shares}</span>
+        <span class="text-sm opacity-80">Partages</span>
+      </div>
+    </div>
+    
+    <!-- Bookmarks -->
+    <div class="text-center p-4 bg-secondary-700/20 rounded-xl border border-secondary-600/20 hover:border-yellow-500/30 transition-all duration-200 group">
+      <button 
+        class="w-full flex flex-col items-center gap-2 text-secondary-300 hover:text-yellow-400 transition-all duration-200 group-hover:scale-105"
+        onclick="toggleBookmark('{postSlug}')"
+        id="bookmark-btn-{postSlug}"
+      >
+        <span class="text-3xl group-hover:scale-110 transition-transform duration-200">🔖</span>
+        <span class="font-bold text-lg" id="bookmark-count-{postSlug}">{bookmarks}</span>
+        <span class="text-sm opacity-80">Sauvegardes</span>
+      </button>
+    </div>
+  </div>
+  
+  <!-- Reading Progress -->
+  <div class="text-center p-4 bg-primary-900/20 rounded-xl border border-primary-700/30">
+    <div class="flex items-center justify-center gap-3 text-primary-300">
+      <span class="text-xl">📖</span>
+      <span class="text-sm font-medium">Progression de lecture</span>
+      <span class="text-lg font-bold" id="reading-progress-{postSlug}">0%</span>
+    </div>
+    <div class="w-full bg-secondary-700/30 rounded-full h-2 mt-3">
+      <div 
+        class="bg-gradient-to-r from-primary-500 to-primary-600 h-2 rounded-full transition-all duration-300 ease-out"
+        id="reading-progress-bar-{postSlug}"
+        style="width: 0%"
+      ></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Initialize like state from localStorage
+    const likeKey = `post-{postSlug}-liked`;
+    const bookmarkKey = `post-{postSlug}-bookmarked`;
+    
+    if (localStorage.getItem(likeKey) === 'true') {
+      const likeBtn = document.getElementById('like-btn-{postSlug}');
+      if (likeBtn) {
+        likeBtn.classList.add('text-primary-400');
+        likeBtn.querySelector('span:first-child').textContent = '❤️';
+      }
+    }
+    
+    if (localStorage.getItem(bookmarkKey) === 'true') {
+      const bookmarkBtn = document.getElementById('bookmark-btn-{postSlug}');
+      if (bookmarkBtn) {
+        bookmarkBtn.classList.add('text-yellow-400');
+        bookmarkBtn.querySelector('span:first-child').textContent = '🔖';
+      }
+    }
+    
+    // Track reading progress
+    let readingProgress = 0;
+    const updateReadingProgress = () => {
+      const scrollTop = window.pageYOffset;
+      const docHeight = document.body.offsetHeight - window.innerHeight;
+      const scrollPercent = Math.round((scrollTop / docHeight) * 100);
+      
+      if (scrollPercent > readingProgress) {
+        readingProgress = scrollPercent;
+        const progressElement = document.getElementById('reading-progress-{postSlug}');
+        if (progressElement) {
+          progressElement.textContent = `${readingProgress}%`;
+        }
+      }
+    };
+    
+    window.addEventListener('scroll', updateReadingProgress);
+    updateReadingProgress(); // Initial call
+  });
+  
+  function toggleLike(postSlug: string) {
+    const likeBtn = document.getElementById(`like-btn-${postSlug}`);
+    const likeCount = document.getElementById(`like-count-${postSlug}`);
+    const likeKey = `post-${postSlug}-liked`;
+    
+    if (likeBtn && likeCount) {
+      const isLiked = localStorage.getItem(likeKey) === 'true';
+      const currentCount = parseInt(likeCount.textContent || '0');
+      
+      if (isLiked) {
+        // Unlike
+        likeBtn.classList.remove('text-primary-400');
+        likeBtn.querySelector('span:first-child').textContent = '🤍';
+        likeCount.textContent = (currentCount - 1).toString();
+        localStorage.setItem(likeKey, 'false');
+      } else {
+        // Like
+        likeBtn.classList.add('text-primary-400');
+        likeBtn.querySelector('span:first-child').textContent = '❤️';
+        likeCount.textContent = (currentCount + 1).toString();
+        localStorage.setItem(likeKey, 'true');
+        
+        // Add animation
+        likeBtn.style.transform = 'scale(1.2)';
+        setTimeout(() => {
+          likeBtn.style.transform = 'scale(1)';
+        }, 200);
+      }
+      
+      // Send to API
+      // fetch('/api/posts/like', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ postSlug, liked: !isLiked })
+      // });
+    }
+  }
+  
+  function toggleBookmark(postSlug: string) {
+    const bookmarkBtn = document.getElementById(`bookmark-btn-${postSlug}`);
+    const bookmarkCount = document.getElementById(`bookmark-count-${postSlug}`);
+    const bookmarkKey = `post-${postSlug}-bookmarked`;
+    
+    if (bookmarkBtn && bookmarkCount) {
+      const isBookmarked = localStorage.getItem(bookmarkKey) === 'true';
+      const currentCount = parseInt(bookmarkCount.textContent || '0');
+      
+      if (isBookmarked) {
+        // Remove bookmark
+        bookmarkBtn.classList.remove('text-yellow-400');
+        bookmarkBtn.querySelector('span:first-child').textContent = '🔖';
+        bookmarkCount.textContent = (currentCount - 1).toString();
+        localStorage.setItem(bookmarkKey, 'false');
+      } else {
+        // Add bookmark
+        bookmarkBtn.classList.add('text-yellow-400');
+        bookmarkBtn.querySelector('span:first-child').textContent = '🔖';
+        bookmarkCount.textContent = (currentCount + 1).toString();
+        localStorage.setItem(bookmarkKey, 'true');
+        
+        // Add animation
+        bookmarkBtn.style.transform = 'scale(1.2)';
+        setTimeout(() => {
+          bookmarkBtn.style.transform = 'scale(1)';
+        }, 200);
+      }
+      
+      // Send to API
+      // fetch('/api/posts/bookmark', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ postSlug, bookmarked: !isBookmarked })
+      // });
+    }
+  }
+</script>
+

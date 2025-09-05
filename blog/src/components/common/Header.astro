@@ -1,0 +1,177 @@
+---
+export interface Props {
+  title?: string;
+}
+
+import LanguageSelector from './LanguageSelector.astro';
+
+const { title } = Astro.props;
+---
+
+<header class="bg-gradient-to-r from-secondary-900/95 to-primary-900/95 backdrop-blur-md border-b border-primary-700/30 sticky top-0 z-50 shadow-2xl">
+  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-20">
+      <!-- Logo -->
+      <div class="flex-shrink-0">
+        <a href="/" class="flex items-center space-x-3 group">
+          <div class="relative">
+            <div class="w-12 h-12 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <img src="/logo.avif" alt="Mad2Moi Logo" class="w-10 h-10 rounded-lg" />
+            </div>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-2xl font-bold text-white font-elegant">Mad2Moi</span>
+            <span class="text-lg font-medium text-primary-300">
+              Mag
+            </span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Navigation Desktop -->
+      <div class="hidden lg:block">
+        <div class="ml-10 flex items-baseline space-x-6">
+          <a href="/" class="nav-link" data-translate="🏠 Accueil">
+            🏠 Accueil
+          </a>
+          <a href="/blog" class="nav-link" data-translate="📚 Blog">
+            📚 Blog
+          </a>
+          <a href="/categories" class="nav-link" data-translate="🏷️ Catégories">
+            🏷️ Catégories
+          </a>
+          <a href="/about" class="nav-link" data-translate="💡 À propos">
+            💡 À propos
+          </a>
+          <a href="/contact" class="nav-link" data-translate="📧 Contact">
+            📧 Contact
+          </a>
+          <a href="/faq" class="nav-link" data-translate="❓ FAQ">
+            ❓ FAQ
+          </a>
+          <a href="/sitemap" class="nav-link" data-translate="🗺️ Plan du site">
+            🗺️ Plan du site
+          </a>
+        </div>
+      </div>
+
+      <!-- Language Selector Desktop -->
+      <div class="hidden lg:block ml-6">
+        <LanguageSelector />
+      </div>
+
+
+
+      <!-- Mobile menu button -->
+      <div class="lg:hidden">
+        <button
+          type="button"
+          class="inline-flex items-center justify-center p-2 rounded-lg text-white hover:text-primary-300 hover:bg-primary-600/20 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 transition-colors duration-200"
+          id="mobile-menu-button"
+        >
+          <span class="sr-only">Ouvrir le menu principal</span>
+          <svg class="block h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile menu -->
+    <div class="lg:hidden hidden" id="mobile-menu">
+      <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-secondary-800/90 backdrop-blur-md border-t border-primary-700/30">
+        <a href="/" class="mobile-nav-link" data-translate="🏠 Accueil">
+          🏠 Accueil
+        </a>
+        <a href="/blog" class="mobile-nav-link" data-translate="📚 Blog">
+          📚 Blog
+        </a>
+        <a href="/categories" class="mobile-nav-link" data-translate="🏷️ Catégories">
+          🏷️ Catégories
+        </a>
+        <a href="/about" class="mobile-nav-link" data-translate="💡 À propos">
+          💡 À propos
+        </a>
+        <a href="/contact" class="mobile-nav-link" data-translate="📧 Contact">
+          📧 Contact
+        </a>
+        <a href="/faq" class="mobile-nav-link" data-translate="❓ FAQ">
+          ❓ FAQ
+        </a>
+        <a href="/sitemap" class="mobile-nav-link" data-translate="🗺️ Plan du site">
+          🗺️ Plan du site
+        </a>
+        
+        <!-- Language Selector Mobile -->
+        <div class="px-3 py-2">
+          <LanguageSelector />
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<style>
+  .nav-link {
+    @apply text-secondary-300 hover:text-primary-400 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 hover:bg-primary-600/20 hover:scale-105;
+  }
+  
+  .nav-link.active {
+    @apply text-primary-400 bg-primary-600/20 border border-primary-500/30;
+  }
+  
+  .nav-link-special {
+    @apply text-white bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105 shadow-lg;
+  }
+  
+  .mobile-nav-link {
+    @apply text-secondary-300 hover:text-primary-400 hover:bg-primary-600/20 block px-3 py-2 rounded-lg text-base font-medium transition-colors duration-200;
+  }
+  
+  .mobile-nav-link.active {
+    @apply text-primary-400 bg-primary-600/20 border border-primary-500/30;
+  }
+  
+  .mobile-nav-link-special {
+    @apply text-white bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 block px-3 py-2 rounded-lg text-base font-medium transition-colors duration-200;
+  }
+</style>
+
+<script>
+  // Mobile menu toggle
+  document.addEventListener('DOMContentLoaded', () => {
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    
+    if (mobileMenuButton && mobileMenu) {
+      mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+        // Add animation class
+        if (!mobileMenu.classList.contains('hidden')) {
+          mobileMenu.classList.add('animate-slide-down');
+        }
+      });
+    }
+    
+
+    
+    // Highlight active navigation link
+    const currentPath = window.location.pathname;
+    const navLinks = document.querySelectorAll('.nav-link, .mobile-nav-link');
+    
+    navLinks.forEach(link => {
+      const href = link.getAttribute('href');
+      if (href === currentPath || (href === '/blog' && currentPath.startsWith('/blog'))) {
+        link.classList.add('active');
+      }
+    });
+    
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (mobileMenu && !mobileMenu.contains(e.target as Node) && !mobileMenuButton?.contains(e.target as Node)) {
+        mobileMenu.classList.add('hidden');
+      }
+    });
+  });
+</script>
+

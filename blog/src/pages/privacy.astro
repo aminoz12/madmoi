@@ -1,0 +1,275 @@
+---
+import Layout from '../layouts/Layout.astro';
+import LiveChat from '../components/common/LiveChat.astro';
+import JoinMad2MoiCTA from '../components/common/JoinMad2MoiCTA.astro';
+
+const currentYear = new Date().getFullYear();
+---
+
+<Layout 
+  title="Politique de Confidentialité | Mad2Moi Blog"
+  description="Découvrez comment Mad2Moi Blog protège vos données personnelles et respecte votre vie privée. Politique de confidentialité complète et transparente."
+  tags={['Confidentialité', 'Vie Privée', 'Protection des Données', 'RGPD', 'Cookies']}
+  type="website"
+  canonical="https://your-domain.com/privacy"
+>
+  <!-- Hero Section -->
+  <section class="relative py-20 bg-gradient-to-br from-secondary-900 via-primary-900 to-secondary-800 overflow-hidden">
+    <div class="absolute inset-0 bg-black/20"></div>
+    <div class="absolute inset-0 bg-gradient-to-r from-secondary-600/20 to-primary-600/20"></div>
+    
+    <div class="relative z-10 text-center max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h1 class="text-5xl md:text-6xl font-bold mb-6 text-glow">
+        <span class="text-white">🔒 Politique de</span>
+        <span class="text-primary-400">Confidentialité</span>
+      </h1>
+      <p class="text-xl text-secondary-300 mb-8 leading-relaxed">
+        Votre vie privée est importante pour nous. Découvrez comment nous protégeons 
+        vos données et respectons vos droits.
+      </p>
+      
+      <div class="inline-flex items-center px-4 py-2 bg-primary-500/20 backdrop-blur-sm border border-primary-500/30 rounded-full text-primary-300 text-sm font-medium">
+        <span class="mr-2">📅</span>
+        Dernière mise à jour : {currentYear}
+      </div>
+    </div>
+  </section>
+
+  <!-- Privacy Policy Content -->
+  <section class="py-20 bg-gradient-to-b from-secondary-900 to-secondary-800">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="prose prose-invert max-w-none">
+        
+        <!-- Introduction -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">Introduction</h2>
+          <p class="text-secondary-300 leading-relaxed">
+            Mad2Moi Blog s'engage à protéger votre vie privée et à traiter vos données personnelles 
+            de manière transparente et sécurisée. Cette politique de confidentialité explique comment 
+            nous collectons, utilisons et protégeons vos informations lorsque vous visitez notre site.
+          </p>
+        </div>
+
+        <!-- Data Collection -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">Collecte des Données</h2>
+          <p class="text-secondary-300 leading-relaxed mb-4">
+            Nous collectons les informations suivantes :
+          </p>
+          <p class="text-secondary-300 leading-relaxed">
+            Nous collectons uniquement les informations nécessaires au bon fonctionnement de notre service : 
+            adresse email pour la newsletter, données de navigation anonymisées, et informations que vous choisissez de partager.
+          </p>
+          <ul class="text-secondary-300 space-y-2 ml-6">
+            <li><strong>Données de navigation :</strong> Adresse IP, type de navigateur, pages visitées, durée de visite</li>
+            <li><strong>Données de contact :</strong> Nom, email, message (lorsque vous nous contactez)</li>
+            <li><strong>Données de newsletter :</strong> Adresse email (si vous vous abonnez)</li>
+            <li><strong>Cookies :</strong> Pour améliorer votre expérience et analyser le trafic</li>
+          </ul>
+        </div>
+
+        <!-- Use of Data -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">Utilisation des Données</h2>
+          <p class="text-secondary-300 leading-relaxed mb-4">
+            Vos données sont utilisées pour :
+          </p>
+          <ul class="text-secondary-300 space-y-2 ml-6">
+            <li>Améliorer notre site web et votre expérience utilisateur</li>
+            <li>Répondre à vos demandes et questions</li>
+            <li>Vous envoyer des newsletters (avec votre consentement)</li>
+            <li>Analyser le trafic et les tendances du site</li>
+            <li>Respecter nos obligations légales</li>
+          </ul>
+        </div>
+
+        <!-- Data Protection -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">Protection des Données</h2>
+          <p class="text-secondary-300 leading-relaxed mb-4">
+            Nous mettons en place des mesures de sécurité appropriées pour protéger vos données :
+          </p>
+          <ul class="text-secondary-300 space-y-2 ml-6">
+            <li>Chiffrement SSL pour toutes les transmissions de données</li>
+            <li>Accès restreint aux données personnelles</li>
+            <li>Surveillance régulière de nos systèmes de sécurité</li>
+            <li>Formation de notre équipe aux bonnes pratiques de sécurité</li>
+          </ul>
+        </div>
+
+        <!-- Cookies -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">Cookies et Technologies Similaires</h2>
+          <p class="text-secondary-300 leading-relaxed mb-4">
+            Notre site utilise des cookies pour :
+          </p>
+          <ul class="text-secondary-300 space-y-2 ml-6">
+            <li><strong>Cookies essentiels :</strong> Fonctionnement du site (obligatoires)</li>
+            <li><strong>Cookies analytiques :</strong> Comprendre l'utilisation du site</li>
+            <li><strong>Cookies de préférences :</strong> Mémoriser vos choix</li>
+          </ul>
+          <p class="text-secondary-300 leading-relaxed mt-4">
+            Vous pouvez gérer vos préférences de cookies via les paramètres de votre navigateur.
+          </p>
+        </div>
+
+        <!-- Third Parties -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">Tiers et Partenaires</h2>
+          <p class="text-secondary-300 leading-relaxed mb-4">
+            Nous ne vendons jamais vos données personnelles. Nous pouvons partager des informations avec :
+          </p>
+          <ul class="text-secondary-300 space-y-2 ml-6">
+            <li><strong>Prestataires de services :</strong> Hébergement, analytics, email</li>
+            <li><strong>Autorités légales :</strong> Si requis par la loi</li>
+            <li><strong>Protection des droits :</strong> Pour défendre nos droits légitimes</li>
+          </ul>
+        </div>
+
+        <!-- Your Rights -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">Vos Droits</h2>
+          <p class="text-secondary-300 leading-relaxed mb-4">
+            Conformément au RGPD, vous avez le droit de :
+          </p>
+          <ul class="text-secondary-300 space-y-2 ml-6">
+            <li><strong>Accès :</strong> Consulter vos données personnelles</li>
+            <li><strong>Rectification :</strong> Corriger des données inexactes</li>
+            <li><strong>Effacement :</strong> Demander la suppression de vos données</li>
+            <li><strong>Portabilité :</strong> Récupérer vos données dans un format structuré</li>
+            <li><strong>Opposition :</strong> Vous opposer au traitement de vos données</li>
+            <li><strong>Retrait du consentement :</strong> Pour les newsletters et cookies optionnels</li>
+          </ul>
+        </div>
+
+        <!-- Data Retention -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">Conservation des Données</h2>
+          <p class="text-secondary-300 leading-relaxed">
+            Nous conservons vos données uniquement le temps nécessaire aux finalités pour lesquelles 
+            elles ont été collectées. Les données de navigation sont conservées 12 mois, les données 
+            de contact 3 ans, et les données de newsletter jusqu'à votre désinscription.
+          </p>
+        </div>
+
+        <!-- Children -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">Protection des Mineurs</h2>
+          <p class="text-secondary-300 leading-relaxed">
+            Notre site contient du contenu pour adultes et n'est pas destiné aux personnes de moins 
+            de 18 ans. Nous ne collectons pas sciemment de données personnelles auprès de mineurs. 
+            Si vous êtes parent et pensez que votre enfant nous a fourni des informations, 
+            contactez-nous immédiatement.
+          </p>
+        </div>
+
+        <!-- International Transfers -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">Transferts Internationaux</h2>
+          <p class="text-secondary-300 leading-relaxed">
+            Vos données sont principalement traitées en France et dans l'Union Européenne. 
+            Si des transferts vers des pays tiers sont nécessaires, nous nous assurons que 
+            des garanties appropriées sont en place pour protéger vos données.
+          </p>
+        </div>
+
+        <!-- Changes to Policy -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">Modifications de cette Politique</h2>
+          <p class="text-secondary-300 leading-relaxed">
+            Nous pouvons mettre à jour cette politique de confidentialité de temps à autre. 
+            Les modifications importantes seront notifiées sur notre site ou par email. 
+            Nous vous encourageons à consulter régulièrement cette page.
+          </p>
+        </div>
+
+        <!-- Contact -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">Nous Contacter</h2>
+          <p class="text-secondary-300 leading-relaxed mb-4">
+            Pour toute question concernant cette politique de confidentialité ou pour exercer 
+            vos droits, contactez-nous :
+          </p>
+          <div class="bg-secondary-800/50 rounded-lg p-4 border border-secondary-700/30">
+            <p class="text-secondary-300">
+              <strong>Email :</strong> privacy@mad2moi-blog.com<br>
+              <strong>Adresse :</strong> [Votre adresse]<br>
+              <strong>Délégué à la protection des données :</strong> [Nom du DPO]
+            </p>
+          </div>
+        </div>
+
+        <!-- Legal Basis -->
+        <div class="card">
+          <h2 class="text-2xl font-bold text-white mb-4">Base Légale du Traitement</h2>
+          <p class="text-secondary-300 leading-relaxed">
+            Le traitement de vos données est basé sur : votre consentement (newsletters, cookies), 
+            l'exécution d'un contrat (réponse à vos demandes), nos obligations légales, 
+            et nos intérêts légitimes (amélioration du site, sécurité).
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact CTA -->
+  <section class="py-20 bg-gradient-to-r from-primary-900 to-secondary-900">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="text-3xl font-bold text-white mb-6 font-elegant">
+        Questions sur la Confidentialité ?
+      </h2>
+      <p class="text-xl text-primary-200 mb-10 max-w-3xl mx-auto leading-relaxed">
+        Notre équipe est là pour répondre à toutes vos questions concernant 
+        la protection de vos données personnelles.
+      </p>
+      
+      <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
+        <a href="/contact" class="btn-primary text-lg px-10 py-4 group">
+          <span class="mr-2">📧</span>
+          Nous Contacter
+          <span class="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+        </a>
+        <a href="/faq" class="btn-secondary text-lg px-10 py-4">
+          <span class="mr-2">❓</span>
+          Consulter la FAQ
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Chat -->
+  <LiveChat />
+  
+  <!-- Join Mad2Moi CTA -->
+  <JoinMad2MoiCTA />
+</Layout>
+
+<style>
+  .text-glow {
+    text-shadow: 0 0 20px rgba(236, 72, 153, 0.5);
+  }
+  
+  .prose {
+    color: #cbd5e1;
+  }
+  
+  .prose h2 {
+    color: #f8fafc;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+  
+  .prose p {
+    margin-bottom: 1rem;
+  }
+  
+  .prose ul {
+    margin-bottom: 1rem;
+  }
+  
+  .prose li {
+    margin-bottom: 0.5rem;
+  }
+</style>
+

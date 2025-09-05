@@ -1,0 +1,158 @@
+---
+// Newsletter Signup Component
+---
+
+<section class="newsletter-signup py-16 px-4">
+  <div class="max-w-4xl mx-auto">
+    <div class="bg-gradient-to-br from-primary-900/80 to-secondary-900/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-primary-700/50 p-8 md:p-12 relative overflow-hidden">
+      <!-- Background decoration -->
+      <div class="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-secondary-500/10"></div>
+      <div class="absolute -top-20 -right-20 w-40 h-40 bg-primary-500/20 rounded-full blur-3xl"></div>
+      <div class="absolute -bottom-20 -left-20 w-40 h-40 bg-secondary-500/20 rounded-full blur-3xl"></div>
+      
+      <div class="relative z-10 text-center">
+        <div class="mb-6">
+          <h2 class="text-3xl md:text-4xl font-bold text-white mb-4 font-elegant">
+            Restez Connecté à Votre Plaisir
+          </h2>
+          <p class="text-lg text-secondary-200 max-w-2xl mx-auto leading-relaxed">
+            Recevez nos derniers articles, conseils exclusifs et découvertes érotiques directement dans votre boîte mail. 
+            Rejoignez notre communauté de lecteurs passionnés.
+          </p>
+        </div>
+        
+        <form class="newsletter-form max-w-md mx-auto" id="newsletter-form">
+          <div class="flex flex-col sm:flex-row gap-3 mb-4">
+            <input 
+              type="email" 
+              placeholder="Votre adresse email" 
+              class="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent text-white placeholder-white/60 backdrop-blur-sm transition-all duration-300"
+              required
+              id="newsletter-email"
+            />
+            <button 
+              type="submit" 
+              class="px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-medium rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-primary-900"
+            >
+              S'abonner
+            </button>
+          </div>
+          
+          <div class="flex items-center justify-center gap-2 text-sm text-secondary-300">
+            <input type="checkbox" id="newsletter-privacy" class="rounded border-white/20 bg-white/10 text-primary-600 focus:ring-primary-500" required />
+            <label for="newsletter-privacy">
+              J'accepte de recevoir des emails et j'ai lu la 
+              <a href="/privacy" class="text-primary-300 hover:text-primary-200 underline">politique de confidentialité</a>
+            </label>
+          </div>
+        </form>
+        
+        <div class="mt-6 text-sm text-secondary-300">
+          <p>✨ Rejoignez plus de 5,000 lecteurs passionnés</p>
+          <p>🔒 Vos données sont protégées et vous pouvez vous désabonner à tout moment</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .newsletter-signup {
+    position: relative;
+  }
+  
+  .newsletter-form input:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgb(168, 85, 247);
+  }
+  
+  .newsletter-form button:active {
+    transform: scale(0.95);
+  }
+  
+  /* Animation for form submission */
+  .newsletter-form.submitting button {
+    pointer-events: none;
+    opacity: 0.7;
+  }
+  
+  .newsletter-form.submitting button::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    margin: auto;
+    border: 2px solid transparent;
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('newsletter-form');
+    const emailInput = document.getElementById('newsletter-email');
+    
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      if (!form) return;
+      
+      const formData = new FormData(form);
+      const email = formData.get('email');
+      
+      if (!email) return;
+      
+      // Add submitting state
+      form.classList.add('submitting');
+      
+      try {
+        // Simulate API call (replace with actual newsletter signup endpoint)
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Show success message
+        showNotification('Merci ! Vous êtes maintenant abonné à notre newsletter.', 'success');
+        
+        // Reset form
+        form.reset();
+        
+      } catch (error) {
+        showNotification('Une erreur est survenue. Veuillez réessayer.', 'error');
+      } finally {
+        form.classList.remove('submitting');
+      }
+    });
+    
+    function showNotification(message: string, type: 'success' | 'error') {
+      const notification = document.createElement('div');
+      notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transition-all duration-300 transform translate-x-full ${
+        type === 'success' 
+          ? 'bg-green-600 text-white' 
+          : 'bg-red-600 text-white'
+      }`;
+      notification.textContent = message;
+      
+      document.body.appendChild(notification);
+      
+      // Animate in
+      setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+      }, 100);
+      
+      // Animate out and remove
+      setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 300);
+      }, 3000);
+    }
+  });
+</script>
+

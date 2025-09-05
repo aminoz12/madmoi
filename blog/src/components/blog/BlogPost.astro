@@ -1,0 +1,260 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Breadcrumbs from '../common/Breadcrumbs.astro';
+import CategoryBadge from '../CategoryBadge.astro';
+import VisitorCounter from './VisitorCounter.astro';
+import SocialShare from './SocialShare.astro';
+import CommentSection from './CommentSection.astro';
+import CallToAction from './CallToAction.astro';
+import EngagementStats from './EngagementStats.astro';
+
+export interface Props {
+  post: {
+    slug: string;
+    title: string;
+    excerpt: string;
+    content: string;
+    category: string;
+    publishedAt: string;
+    readTime: string;
+    author: string;
+    tags: string[];
+    isExplicit: boolean;
+    featured: boolean;
+    views?: number;
+  };
+  relatedPosts?: Array<{
+    slug: string;
+    title: string;
+    excerpt: string;
+    category: string;
+    publishedAt: string;
+    readTime: string;
+  }>;
+}
+
+const { post, relatedPosts = [] } = Astro.props;
+
+const breadcrumbItems = [
+  { label: 'Accueil', href: '/' },
+  { label: 'Blog', href: '/blog' },
+  { label: post.category, href: `/blog?category=${post.category.toLowerCase()}` },
+  { label: post.title, current: true }
+];
+
+const currentUrl = new URL(Astro.url.pathname, Astro.site).href;
+---
+
+<article class="max-w-5xl mx-auto">
+  <!-- Breadcrumbs -->
+  <div class="mb-8">
+    <Breadcrumbs items={breadcrumbItems} />
+  </div>
+  
+  <!-- Article Header -->
+  <header class="mb-12 p-8 bg-gradient-to-br from-secondary-800/50 to-secondary-900/50 rounded-2xl border border-secondary-700/30 shadow-xl">
+    <div class="flex flex-wrap items-center gap-3 mb-6">
+      <CategoryBadge name={post.category} color={post.categoryColor} size="md" />
+      {post.isExplicit && (
+        <span class="px-4 py-2 bg-red-500/20 text-red-300 rounded-full text-sm font-medium border border-red-500/30 shadow-lg">
+          🔥 Explicite
+        </span>
+      )}
+      {post.featured && (
+        <span class="px-4 py-2 bg-yellow-500/20 text-yellow-300 rounded-full text-sm font-medium border border-yellow-500/30 shadow-lg">
+          ⭐ À la une
+        </span>
+      )}
+    </div>
+    
+    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 font-elegant leading-tight">
+      {post.title}
+    </h1>
+    
+    <p class="text-xl md:text-2xl text-secondary-200 mb-8 leading-relaxed max-w-4xl">
+      {post.excerpt}
+    </p>
+    
+    <!-- Article Meta -->
+    <div class="flex flex-wrap items-center gap-6 text-sm text-secondary-300 mb-6 p-4 bg-secondary-700/20 rounded-xl border border-secondary-600/20">
+      <div class="flex items-center gap-2">
+        <span class="text-lg">👤</span>
+        <span class="font-semibold text-primary-300 text-base">{post.author}</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-lg">📅</span>
+        <time datetime={post.publishedAt} class="font-medium">
+          {new Date(post.publishedAt).toLocaleDateString('fr-FR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          })}
+        </time>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-lg">⏱️</span>
+        <span class="font-medium">{post.readTime}</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-lg">👁️</span>
+        <VisitorCounter postSlug={post.slug} initialCount={post.views || Math.floor(Math.random() * 1000) + 100} />
+      </div>
+    </div>
+    
+    <!-- Tags -->
+    <div class="flex flex-wrap gap-3">
+      {post.tags.map((tag) => (
+        <a 
+          href={`/blog?search=${encodeURIComponent(tag)}`}
+          class="px-4 py-2 bg-secondary-700/50 text-secondary-300 rounded-lg border border-secondary-600/30 hover:bg-secondary-600/50 hover:text-white transition-all duration-200 text-sm font-medium hover:scale-105 hover:shadow-lg"
+        >
+          #{tag}
+        </a>
+      ))}
+    </div>
+  </header>
+  
+  <!-- Article Content -->
+  <div class="mb-16">
+    <div class="bg-secondary-800/30 p-8 md:p-12 rounded-2xl border border-secondary-700/30 shadow-xl">
+      <div class="prose prose-lg prose-invert prose-primary max-w-none">
+        <div class="text-secondary-200 leading-relaxed space-y-8">
+          {post.content.split('\n\n').map((paragraph, index) => (
+            <p key={index} class="text-lg md:text-xl leading-relaxed text-secondary-200">
+              {paragraph}
+            </p>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Engagement Stats -->
+  <div class="mb-12">
+    <EngagementStats 
+      postSlug={post.slug}
+      likes={Math.floor(Math.random() * 100) + 20}
+      shares={Math.floor(Math.random() * 50) + 10}
+      comments={Math.floor(Math.random() * 30) + 5}
+      bookmarks={Math.floor(Math.random() * 20) + 3}
+    />
+  </div>
+  
+  <!-- Social Share -->
+  <div class="mb-16">
+    <SocialShare 
+      url={currentUrl}
+      title={post.title}
+      description={post.excerpt}
+    />
+  </div>
+  
+  <!-- Related Posts -->
+  {relatedPosts.length > 0 && (
+    <section class="mb-20">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4 font-elegant">
+          📚 Articles Similaires
+        </h2>
+        <p class="text-lg text-secondary-300 max-w-2xl mx-auto">
+          Continuez votre exploration avec nos articles similaires qui pourraient vous intéresser
+        </p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+        {relatedPosts.slice(0, 3).map((relatedPost) => (
+          <article class="group bg-secondary-800/50 border border-secondary-700/30 rounded-xl overflow-hidden hover:border-primary-500/50 hover:shadow-2xl transform hover:scale-105 transition-all duration-500 shadow-lg">
+            <div class="aspect-video bg-gradient-to-br from-primary-800/50 to-secondary-800/50 rounded-t-xl mb-4 overflow-hidden border-b border-secondary-700/30">
+              <div class="w-full h-full flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                <span class="text-4xl opacity-60 group-hover:opacity-80 transition-opacity">📖</span>
+              </div>
+            </div>
+            
+            <div class="p-6">
+              <div class="flex items-center gap-3 mb-4">
+                <CategoryBadge 
+                  name={relatedPost.category} 
+                  color={relatedPost.categoryColor} 
+                  size="sm" 
+                />
+                <span class="text-xs text-secondary-400 font-medium">{relatedPost.readTime}</span>
+              </div>
+              
+              <h3 class="text-xl font-semibold text-white mb-3 group-hover:text-primary-400 transition-colors font-elegant leading-tight line-clamp-2">
+                <a href={`/blog/${relatedPost.slug}`} class="hover:underline">{relatedPost.title}</a>
+              </h3>
+              
+              <p class="text-secondary-300 text-sm leading-relaxed mb-4 line-clamp-3">
+                {relatedPost.excerpt}
+              </p>
+              
+              <div class="flex items-center justify-between">
+                <time datetime={relatedPost.publishedAt} class="text-xs text-secondary-400 font-medium">
+                  {new Date(relatedPost.publishedAt).toLocaleDateString('fr-FR', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                  })}
+                </time>
+                <a href={`/blog/${relatedPost.slug}`} class="text-primary-400 hover:text-primary-300 text-sm font-medium transition-colors">
+                  Lire l'article →
+                </a>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+      
+      <div class="text-center">
+        <CallToAction 
+          type="related-posts"
+          variant="secondary"
+        />
+      </div>
+    </section>
+  )}
+  
+  <!-- Comments Section -->
+  <div class="mb-16">
+    <CommentSection 
+      postSlug={post.slug}
+      postTitle={post.title}
+    />
+  </div>
+  
+  <!-- Final Call to Action -->
+  <div class="mb-8">
+    <CallToAction 
+      type="contact"
+      variant="primary"
+    />
+  </div>
+</article>
+
+<style>
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .prose {
+    color: inherit;
+  }
+  
+  .prose p {
+    color: inherit;
+  }
+  
+  .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+    color: inherit;
+  }
+</style>

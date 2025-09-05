@@ -1,0 +1,452 @@
+---
+import Header from '../components/common/Header.astro';
+import Footer from '../components/common/Footer.astro';
+import GlobalTranslator from '../components/common/GlobalTranslator.astro';
+import LiveChat from '../components/common/LiveChat.astro';
+import EnvMeta from '../components/EnvMeta.astro';
+import '../styles/global.css';
+
+export interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  type?: 'website' | 'article';
+  publishedTime?: string;
+  modifiedTime?: string;
+  author?: string;
+  tags?: string[];
+  canonicalURL?: string;
+  ogImage?: string;
+  twitterImage?: string;
+  locale?: string;
+  alternateLocales?: string[];
+}
+
+const {
+  title,
+  description = 'Blog mature et sophistiqué sur l\'exploration érotique et le bien-être sexuel',
+  image = '/images/og-default.jpg',
+  type = 'website',
+  publishedTime,
+  modifiedTime,
+  author,
+  tags = [],
+  canonicalURL,
+  ogImage,
+  twitterImage,
+  locale = 'fr',
+  alternateLocales = ['en', 'de']
+} = Astro.props;
+
+const siteTitle = title === 'Mad2Moi Blog - Exploration Érotique & Bien-être' ? title : `${title} | Mad2Moi Blog`;
+const siteURL = Astro.site || 'https://mad2moi-blog.com';
+const fullImageURL = image.startsWith('http') ? image : `${siteURL}${image}`;
+const canonical = canonicalURL || `${siteURL}${Astro.url.pathname}`;
+
+// Enhanced image URLs for social media
+const ogImageURL = ogImage ? (ogImage.startsWith('http') ? ogImage : `${siteURL}${ogImage}`) : fullImageURL;
+const twitterImageURL = twitterImage ? (twitterImage.startsWith('http') ? twitterImage : `${siteURL}${twitterImage}`) : fullImageURL;
+
+// Viral, engaging descriptions for social media
+const viralDescription = description.includes('Blog mature') 
+  ? '🚀 Découvrez l\'univers fascinant de l\'exploration érotique ! 💋 Conseils experts, guides pratiques et témoignages authentiques pour une vie sexuelle épanouie ✨' 
+  : description;
+---
+
+<!doctype html>
+<html lang={locale} class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="generator" content={Astro.generator} />
+    
+    <!-- Age verification -->
+    <meta name="rating" content="adult" />
+    <meta name="classification" content="adult" />
+    
+    <!-- Environment variables for frontend -->
+    <EnvMeta />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href={canonical} />
+    
+    <!-- Hreflang Tags for Multilingual SEO -->
+    <link rel="alternate" hreflang={locale} href={canonical} />
+    {alternateLocales.map(lang => (
+      <link rel="alternate" hreflang={lang} href={`${siteURL}/${lang}${Astro.url.pathname}`} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={canonical} />
+    
+    <!-- SEO Meta Tags -->
+    <title>{siteTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="keywords" content={tags.join(', ')} />
+    {author && <meta name="author" content={author} />}
+    
+    <!-- Open Graph / Facebook - Enhanced for Viral Engagement -->
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={siteTitle} />
+    <meta property="og:description" content={viralDescription} />
+    <meta property="og:image" content={ogImageURL} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={siteTitle} />
+    <meta property="og:site_name" content="Mad2Moi Blog" />
+    <meta property="og:locale" content={locale === 'fr' ? 'fr_FR' : locale === 'en' ? 'en_US' : 'de_DE'} />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:locale:alternate" content="de_DE" />
+    {publishedTime && <meta property="article:published_time" content={publishedTime} />}
+    {modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+    {author && <meta property="article:author" content={author} />}
+    {tags.map(tag => <meta property="article:tag" content={tag} />)}
+    
+    <!-- Twitter Card - Enhanced for Maximum Engagement -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:site" content="@mad2_moi" />
+    <meta property="twitter:creator" content="@mad2_moi" />
+    <meta property="twitter:url" content={canonical} />
+    <meta property="twitter:title" content={siteTitle} />
+    <meta property="twitter:description" content={viralDescription} />
+    <meta property="twitter:image" content={twitterImageURL} />
+    <meta property="twitter:image:alt" content={siteTitle} />
+    
+    <!-- Additional Meta Tags -->
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#ec4899" />
+    <meta name="msapplication-TileColor" content="#ec4899" />
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Mad2Moi Blog",
+        "description": "Blog mature et sophistiqué sur l'exploration érotique et le bien-être sexuel",
+        "url": siteURL,
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": `${siteURL}/blog?search={search_term_string}`
+          },
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
+    
+    {type === 'article' && (
+      <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": title,
+          "description": description,
+          "image": fullImageURL,
+          "author": {
+            "@type": "Person",
+            "name": author || "Mad2Moi Blog"
+          },
+          "publisher": {
+            "@type": "Organization",
+            "name": "Mad2Moi Blog",
+            "logo": {
+              "@type": "ImageObject",
+              "url": `${siteURL}/favicon.svg`
+            }
+          },
+          "datePublished": publishedTime,
+          "dateModified": modifiedTime || publishedTime,
+          "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": canonical
+          }
+        }
+      </script>
+    )}
+  </head>
+  <body class="bg-gradient-to-br from-secondary-900 via-primary-900 to-secondary-800 text-white antialiased">
+    <Header />
+    <main class="min-h-screen">
+      <slot />
+    </main>
+    <Footer />
+    <GlobalTranslator />
+    <LiveChat />
+    
+    <!-- Analytics (Google Analytics 4) -->
+    <!-- Uncomment and replace with your GA4 measurement ID -->
+    <!--
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'GA_MEASUREMENT_ID');
+    </script>
+    -->
+    
+    <!-- Cookie Consent (optional) -->
+    <div id="cookie-consent" class="fixed bottom-4 left-4 right-4 bg-secondary-800/90 backdrop-blur-sm text-white p-4 rounded-lg shadow-lg z-50 hidden border border-secondary-600/50">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex-1">
+          <p class="text-sm">
+            Ce site utilise des cookies pour améliorer votre expérience. 
+            <a href="/privacy" class="underline hover:no-underline text-primary-300">En savoir plus</a>
+          </p>
+        </div>
+        <div class="flex gap-2">
+          <button id="accept-cookies" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm rounded transition-colors">
+            Accepter
+          </button>
+          <button id="decline-cookies" class="px-4 py-2 bg-secondary-600 hover:bg-secondary-700 text-white text-sm rounded transition-colors">
+            Refuser
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <script>
+      // Cookie consent functionality
+      document.addEventListener('DOMContentLoaded', () => {
+        const cookieConsent = document.getElementById('cookie-consent');
+        const acceptBtn = document.getElementById('accept-cookies');
+        const declineBtn = document.getElementById('decline-cookies');
+        
+        // Check if user has already made a choice
+        const cookieChoice = localStorage.getItem('cookie-consent');
+        
+        if (!cookieChoice && cookieConsent) {
+          cookieConsent.classList.remove('hidden');
+        }
+        
+        if (acceptBtn) {
+          acceptBtn.addEventListener('click', () => {
+            localStorage.setItem('cookie-consent', 'accepted');
+            cookieConsent?.classList.add('hidden');
+            // Initialize analytics here if accepted
+          });
+        }
+        
+        if (declineBtn) {
+          declineBtn.addEventListener('click', () => {
+            localStorage.setItem('cookie-consent', 'declined');
+            cookieConsent?.classList.add('hidden');
+          });
+        }
+      });
+      
+      // Smooth scroll for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute('href'));
+          if (target) {
+            target.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start'
+            });
+          }
+        });
+      });
+      
+      // Back to top functionality
+      const backToTop = document.createElement('button');
+      backToTop.innerHTML = '↑';
+      backToTop.className = 'fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white rounded-full shadow-lg transition-all duration-300 opacity-0 invisible z-40 hover:scale-110';
+      backToTop.setAttribute('aria-label', 'Retour en haut');
+      document.body.appendChild(backToTop);
+      
+      window.addEventListener('scroll', () => {
+        if (window.pageYOffset > 300) {
+          backToTop.classList.remove('opacity-0', 'invisible');
+        } else {
+          backToTop.classList.add('opacity-0', 'invisible');
+        }
+      });
+      
+      backToTop.addEventListener('click', () => {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      });
+    </script>
+
+    <!-- Translation System -->
+    <script>
+      // Translation system
+      const translations = {
+        fr: {
+          "Explorez l'univers fascinant de l'exploration érotique et du bien-être sexuel à travers des articles éducatifs, des guides pratiques et des témoignages authentiques. Pour adultes consentants uniquement.": "Explorez l'univers fascinant de l'exploration érotique et du bien-être sexuel à travers des articles éducatifs, des guides pratiques et des témoignages authentiques. Pour adultes consentants uniquement.",
+          "Ce blog contient du contenu explicite destiné aux adultes. Vous devez avoir 18 ans ou plus pour accéder à ce contenu.": "Ce blog contient du contenu explicite destiné aux adultes. Vous devez avoir 18 ans ou plus pour accéder à ce contenu.",
+          "Explorer le Blog": "Explorer le Blog",
+          "En savoir plus": "En savoir plus",
+          "Rejoindre Mad2Moi.com": "Rejoindre Mad2Moi.com",
+          "⚠️ Attention : Ce blog contient du contenu explicite destiné aux adultes. Vous devez avoir 18 ans ou plus pour accéder à ce contenu.": "⚠️ Attention : Ce blog contient du contenu explicite destiné aux adultes. Vous devez avoir 18 ans ou plus pour accéder à ce contenu.",
+          "Nous sommes dédiés à l'éducation érotique, à l'exploration des plaisirs et à la promotion d'une sexualité épanouie et responsable. Pour adultes consentants uniquement.": "Nous sommes dédiés à l'éducation érotique, à l'exploration des plaisirs et à la promotion d'une sexualité épanouie et responsable. Pour adultes consentants uniquement.",
+          "Chez Mad2Moi Blog, nous croyons que l'éducation sexuelle et l'exploration érotique sont des aspects essentiels du bien-être humain. Notre mission est de créer un espace sûr et bienveillant où les adultes peuvent découvrir, apprendre et explorer leurs désirs en toute confiance.": "Chez Mad2Moi Blog, nous croyons que l'éducation sexuelle et l'exploration érotique sont des aspects essentiels du bien-être humain. Notre mission est de créer un espace sûr et bienveillant où les adultes peuvent découvrir, apprendre et explorer leurs désirs en toute confiance.",
+          "Nous nous efforçons de déstigmatiser les pratiques BDSM et le libertinage en fournissant des informations précises, des conseils de sécurité et des témoignages authentiques. Chaque article est soigneusement rédigé pour promouvoir le consentement, la sécurité et le respect mutuel.": "Nous nous efforçons de déstigmatiser les pratiques BDSM et le libertinage en fournissant des informations précises, des conseils de sécurité et des témoignages authentiques. Chaque article est soigneusement rédigé pour promouvoir le consentement, la sécurité et le respect mutuel.",
+          "Blog mature et sophistiqué sur l'exploration érotique et le bien-être sexuel. Contenu éducatif et bienveillant pour adultes consentants.": "Blog mature et sophistiqué sur l'exploration érotique et le bien-être sexuel. Contenu éducatif et bienveillant pour adultes consentants.",
+          "© 2025 Mad2Moi Blog. Tous droits réservés. Contenu pour adultes uniquement.": "© 2025 Mad2Moi Blog. Tous droits réservés. Contenu pour adultes uniquement.",
+          "Découvrez les articles les plus populaires de notre communauté, triés par engagement et pertinence": "Découvrez les articles les plus populaires de notre communauté, triés par engagement et pertinence",
+          "Découvrez d'Autres Articles": "Découvrez d'Autres Articles",
+          "Continuez votre exploration avec nos articles similaires qui pourraient vous intéresser.": "Continuez votre exploration avec nos articles similaires qui pourraient vous intéresser.",
+          "Voir Plus d'Articles": "Voir Plus d'Articles",
+          "Rejoignez la communauté Mad2Moi et découvrez un espace d'exploration érotique mature, bienveillant et éducatif. Votre voyage commence ici.": "Rejoignez la communauté Mad2Moi et découvrez un espace d'exploration érotique mature, bienveillant et éducatif. Votre voyage commence ici.",
+          "Vos informations et conversations restent privées et sécurisées.": "Vos informations et conversations restent privées et sécurisées.",
+          "Apprenez et explorez dans un environnement bienveillant et informatif.": "Apprenez et explorez dans un environnement bienveillant et informatif.",
+          "Rejoignez des personnes partageant les mêmes valeurs et intérêts.": "Rejoignez des personnes partageant les mêmes valeurs et intérêts.",
+          "🌍 {Object.keys(languages).length} langues disponibles": "🌍 7 langues disponibles",
+          "Trouvez des réponses claires et expertes à vos questions sur l'exploration érotique, le bien-être sexuel et les pratiques adultes.": "Trouvez des réponses claires et expertes à vos questions sur l'exploration érotique, le bien-être sexuel et les pratiques adultes.",
+          "Si vous n'avez pas trouvé la réponse à votre question, n'hésitez pas à nous contacter. Notre équipe d'experts est là pour vous aider.": "Si vous n'avez pas trouvé la réponse à votre question, n'hésitez pas à nous contacter. Notre équipe d'experts est là pour vous aider.",
+          "Votre vie privée est importante pour nous. Découvrez comment nous protégeons vos données et respectons vos droits.": "Votre vie privée est importante pour nous. Découvrez comment nous protégeons vos données et respectons vos droits.",
+          "Veuillez lire attentivement ces conditions avant d'utiliser notre site. Votre utilisation du site constitue votre acceptation de ces conditions.": "Veuillez lire attentivement ces conditions avant d'utiliser notre site. Votre utilisation du site constitue votre acceptation de ces conditions.",
+          "En utilisant ce site, vous déclarez et garantissez que vous avez au moins 18 ans.": "En utilisant ce site, vous déclarez et garantissez que vous avez au moins 18 ans.",
+          "Tous les contenus sont destinés à des fins éducatives et informatives uniquement.": "Tous les contenus sont destinés à des fins éducatives et informatives uniquement.",
+          "Est protégé par les droits d'auteur et autres lois sur la propriété intellectuelle. Toute reproduction ou distribution non autorisée est strictement interdite.": "Est protégé par les droits d'auteur et autres lois sur la propriété intellectuelle. Toute reproduction ou distribution non autorisée est strictement interdite.",
+          "Nous nous réservons le droit de modifier ces conditions à tout moment. Les modifications prendront effet immédiatement après leur publication sur le site. Votre utilisation continue du site après toute modification constitue votre acceptation des nouvelles conditions.": "Nous nous réservons le droit de modifier ces conditions à tout moment. Les modifications prendront effet immédiatement après leur publication sur le site. Votre utilisation continue du site après toute modification constitue votre acceptation des nouvelles conditions.",
+          "Nous pouvons suspendre ou résilier votre accès au site à tout moment, sans préavis, pour violation de ces conditions ou pour toute autre raison. Vous pouvez également cesser d'utiliser le site à tout moment.": "Nous pouvons suspendre ou résilier votre accès au site à tout moment, sans préavis, pour violation de ces conditions ou pour toute autre raison. Vous pouvez également cesser d'utiliser le site à tout moment.",
+          "Ces conditions sont régies et interprétées conformément aux lois françaises. Tout litige sera soumis à la compétence exclusive des tribunaux français.": "Ces conditions sont régies et interprétées conformément aux lois françaises. Tout litige sera soumis à la compétence exclusive des tribunaux français.",
+          "Notre équipe est là pour clarifier tout point concernant nos conditions d'utilisation et vous aider à comprendre vos droits et responsabilités.": "Notre équipe est là pour clarifier tout point concernant nos conditions d'utilisation et vous aider à comprendre vos droits et responsabilités.",
+          "Explorez nos différentes catégories de contenu et trouvez ce qui vous intéresse le plus": "Explorez nos différentes catégories de contenu et trouvez ce qui vous intéresse le plus",
+          "💡 Tapez pour voir les suggestions • Utilisez ↑↓ pour naviguer • Appuyez sur Entrée pour rechercher": "💡 Tapez pour voir les suggestions • Utilisez ↑↓ pour naviguer • Appuyez sur Entrée pour rechercher",
+          "Résultats de recherche": "Résultats de recherche",
+          "Toutes nos catégories": "Toutes nos catégories",
+          "catégorie": "catégorie",
+          "catégories": "catégories",
+          "trouvée": "trouvée",
+          "trouvées": "trouvées",
+          "Articles populaires :": "Articles populaires :",
+          "Explorer": "Explorer",
+          "Aucune catégorie trouvée": "Aucune catégorie trouvée",
+          "Aucune catégorie ne correspond à votre recherche. Essayez avec d'autres mots-clés ou parcourez toutes nos catégories.": "Aucune catégorie ne correspond à votre recherche. Essayez avec d'autres mots-clés ou parcourez toutes nos catégories.",
+          "Voir toutes les catégories": "Voir toutes les catégories",
+          "Statistiques du Blog": "Statistiques du Blog",
+          "Découvrez l'étendue de notre contenu éducatif": "Découvrez l'étendue de notre contenu éducatif",
+          "Articles Totaux": "Articles Totaux",
+          "Catégories": "Catégories",
+          "Auteurs": "Auteurs",
+          "Contenu Mature": "Contenu Mature",
+          "Explorez nos articles éducatifs sur l'exploration érotique et le bien-être sexuel": "Explorez nos articles éducatifs sur l'exploration érotique et le bien-être sexuel",
+          "article": "article",
+          "articles": "articles",
+          "trouvé": "trouvé",
+          "trouvés": "trouvés",
+          "au total": "au total",
+          "Questions Fréquentes": "Questions Fréquentes",
+          "questions répondues": "questions répondues",
+          "Besoin d'Aide Supplémentaire ?": "Besoin d'Aide Supplémentaire ?",
+          "Nous Contacter": "Nous Contacter",
+          "Consulter la FAQ": "Consulter la FAQ",
+          "Questions sur la Confidentialité ?": "Questions sur la Confidentialité ?",
+          "Notre équipe est là pour répondre à toutes vos questions concernant la protection de vos données personnelles.": "Notre équipe est là pour répondre à toutes vos questions concernant la protection de vos données personnelles.",
+          "Politique de Confidentialité": "Politique de Confidentialité",
+          "Questions sur les Conditions ?": "Questions sur les Conditions ?",
+          "Notre équipe est là pour clarifier tout point concernant nos conditions d'utilisation et vous aider à comprendre vos droits et responsabilités.": "Notre équipe est là pour clarifier tout point concernant nos conditions d'utilisation et vous aider à comprendre vos droits et responsabilités.",
+          "Choisissez votre langue préférée": "Choisissez votre langue préférée"
+        },
+        en: {
+          "Explorez l'univers fascinant de l'exploration érotique et du bien-être sexuel à travers des articles éducatifs, des guides pratiques et des témoignages authentiques. Pour adultes consentants uniquement.": "Explore the fascinating world of erotic exploration and sexual well-being through educational articles, practical guides and authentic testimonials. For consenting adults only.",
+          "Ce blog contient du contenu explicite destiné aux adultes. Vous devez avoir 18 ans ou plus pour accéder à ce contenu.": "This blog contains explicit content intended for adults. You must be 18 years or older to access this content.",
+          "Explorer le Blog": "Explore the Blog",
+          "En savoir plus": "Learn More",
+          "Rejoindre Mad2Moi.com": "Join Mad2Moi.com",
+          "⚠️ Attention : Ce blog contient du contenu explicite destiné aux adultes. Vous devez avoir 18 ans ou plus pour accéder à ce contenu.": "⚠️ Warning: This blog contains explicit content intended for adults. You must be 18 years or older to access this content.",
+          "Nous sommes dédiés à l'éducation érotique, à l'exploration des plaisirs et à la promotion d'une sexualité épanouie et responsable. Pour adultes consentants uniquement.": "We are dedicated to erotic education, pleasure exploration and promoting fulfilled and responsible sexuality. For consenting adults only.",
+          "Chez Mad2Moi Blog, nous croyons que l'éducation sexuelle et l'exploration érotique sont des aspects essentiels du bien-être humain. Notre mission est de créer un espace sûr et bienveillant où les adultes peuvent découvrir, apprendre et explorer leurs désirs en toute confiance.": "At Mad2Moi Blog, we believe that sexual education and erotic exploration are essential aspects of human well-being. Our mission is to create a safe and caring space where adults can discover, learn and explore their desires with confidence.",
+          "Nous nous efforçons de déstigmatiser les pratiques BDSM et le libertinage en fournissant des informations précises, des conseils de sécurité et des témoignages authentiques. Chaque article est soigneusement rédigé pour promouvoir le consentement, la sécurité et le respect mutuel.": "We strive to destigmatize BDSM practices and libertinism by providing accurate information, safety advice and authentic testimonials. Each article is carefully written to promote consent, safety and mutual respect.",
+          "Blog mature et sophistiqué sur l'exploration érotique et le bien-être sexuel. Contenu éducatif et bienveillant pour adultes consentants.": "Mature and sophisticated blog about erotic exploration and sexual well-being. Educational and caring content for consenting adults.",
+          "© 2025 Mad2Moi Blog. Tous droits réservés. Contenu pour adultes uniquement.": "© 2025 Mad2Moi Blog. All rights reserved. Adult content only.",
+          "Découvrez les articles les plus populaires de notre communauté, triés par engagement et pertinence": "Discover the most popular articles from our community, sorted by engagement and relevance",
+          "Découvrez d'Autres Articles": "Discover Other Articles",
+          "Continuez votre exploration avec nos articles similaires qui pourraient vous intéresser.": "Continue your exploration with our similar articles that might interest you.",
+          "Voir Plus d'Articles": "See More Articles",
+          "Rejoignez la communauté Mad2Moi et découvrez un espace d'exploration érotique mature, bienveillant et éducatif. Votre voyage commence ici.": "Join the Mad2Moi community and discover a mature, caring and educational erotic exploration space. Your journey begins here.",
+          "Vos informations et conversations restent privées et sécurisées.": "Your information and conversations remain private and secure.",
+          "Apprenez et explorez dans un environnement bienveillant et informatif.": "Learn and explore in a caring and informative environment.",
+          "Rejoignez des personnes partageant les mêmes valeurs et intérêts.": "Join people sharing the same values and interests.",
+          "🌍 {Object.keys(languages).length} langues disponibles": "🌍 7 languages available",
+          "Trouvez des réponses claires et expertes à vos questions sur l'exploration érotique, le bien-être sexuel et les pratiques adultes.": "Find clear and expert answers to your questions about erotic exploration, sexual well-being and adult practices.",
+          "Si vous n'avez pas trouvé la réponse à votre question, n'hésitez pas à nous contacter. Notre équipe d'experts est là pour vous aider.": "If you haven't found the answer to your question, don't hesitate to contact us. Our team of experts is here to help you.",
+          "Votre vie privée est importante pour nous. Découvrez comment nous protégeons vos données et respectons vos droits.": "Your privacy is important to us. Discover how we protect your data and respect your rights.",
+          "Veuillez lire attentivement ces conditions avant d'utiliser notre site. Votre utilisation du site constitue votre acceptation de ces conditions.": "Please read these terms carefully before using our site. Your use of the site constitutes your acceptance of these terms.",
+          "En utilisant ce site, vous déclarez et garantissez que vous avez au moins 18 ans.": "By using this site, you declare and warrant that you are at least 18 years old.",
+          "Tous les contenus sont destinés à des fins éducatives et informatives uniquement.": "All content is intended for educational and informational purposes only.",
+          "Est protégé par les droits d'auteur et autres lois sur la propriété intellectuelle. Toute reproduction ou distribution non autorisée est strictement interdite.": "Is protected by copyright and other intellectual property laws. Any unauthorized reproduction or distribution is strictly prohibited.",
+          "Nous nous réservons le droit de modifier ces conditions à tout moment. Les modifications prendront effet immédiatement après leur publication sur le site. Votre utilisation continue du site après toute modification constitue votre acceptation des nouvelles conditions.": "We reserve the right to modify these terms at any time. Changes will take effect immediately after their publication on the site. Your continued use of the site after any modification constitutes your acceptance of the new terms.",
+          "Nous pouvons suspendre ou résilier votre accès au site à tout moment, sans préavis, pour violation de ces conditions ou pour toute autre raison. Vous pouvez également cesser d'utiliser le site à tout moment.": "We may suspend or terminate your access to the site at any time, without notice, for violation of these terms or for any other reason. You may also stop using the site at any time.",
+          "Ces conditions sont régies et interprétées conformément aux lois françaises. Tout litige sera soumis à la compétence exclusive des tribunaux français.": "These terms are governed and interpreted in accordance with French laws. Any dispute will be submitted to the exclusive jurisdiction of French courts.",
+          "Notre équipe est là pour clarifier tout point concernant nos conditions d'utilisation et vous aider à comprendre vos droits et responsabilités.": "Our team is here to clarify any point regarding our terms of use and help you understand your rights and responsibilities.",
+          "Explorez nos différentes catégories de contenu et trouvez ce qui vous intéresse le plus": "Explore our different content categories and find what interests you most",
+          "💡 Tapez pour voir les suggestions • Utilisez ↑↓ pour naviguer • Appuyez sur Entrée pour rechercher": "💡 Type to see suggestions • Use ↑↓ to navigate • Press Enter to search",
+          "Résultats de recherche": "Search results",
+          "Toutes nos catégories": "All our categories",
+          "catégorie": "category",
+          "catégories": "categories",
+          "trouvée": "found",
+          "trouvées": "found",
+          "Articles populaires :": "Popular articles:",
+          "Explorer": "Explore",
+          "Aucune catégorie trouvée": "No category found",
+          "Aucune catégorie ne correspond à votre recherche. Essayez avec d'autres mots-clés ou parcourez toutes nos catégories.": "No category matches your search. Try other keywords or browse all our categories.",
+          "Voir toutes les catégories": "See all categories",
+          "Statistiques du Blog": "Blog Statistics",
+          "Découvrez l'étendue de notre contenu éducatif": "Discover the extent of our educational content",
+          "Articles Totaux": "Total Articles",
+          "Catégories": "Categories",
+          "Auteurs": "Authors",
+          "Contenu Mature": "Mature Content",
+          "Explorez nos articles éducatifs sur l'exploration érotique et le bien-être sexuel": "Explore our educational articles on erotic exploration and sexual well-being",
+          "article": "article",
+          "articles": "articles",
+          "trouvé": "found",
+          "trouvés": "found",
+          "au total": "total",
+          "Questions Fréquentes": "Frequently Asked Questions",
+          "questions répondues": "questions answered",
+          "Besoin d'Aide Supplémentaire ?": "Need Additional Help?",
+          "Nous Contacter": "Contact Us",
+          "Consulter la FAQ": "Consult FAQ",
+          "Questions sur la Confidentialité ?": "Questions about Privacy?",
+          "Notre équipe est là pour répondre à toutes vos questions concernant la protection de vos données personnelles.": "Our team is here to answer all your questions about protecting your personal data.",
+          "Politique de Confidentialité": "Privacy Policy",
+          "Questions sur les Conditions ?": "Questions about Terms?",
+          "Notre équipe est là pour clarifier tout point concernant nos conditions d'utilisation et vous aider à comprendre vos droits et responsabilités.": "Our team is here to clarify any point regarding our terms of use and help you understand your rights and responsibilities.",
+          "Choisissez votre langue préférée": "Choose your preferred language"
+        }
+      };
+
+      function translatePage(language) {
+        document.querySelectorAll('[data-translate]').forEach(element => {
+          const key = element.getAttribute('data-translate');
+          if (translations[language] && translations[language][key]) {
+            element.textContent = translations[language][key];
+          }
+        });
+      }
+
+      // Listen for language changes
+      document.addEventListener('languageChanged', (event) => {
+        translatePage(event.detail.language);
+      });
+
+      // Initialize with French (default)
+      document.addEventListener('DOMContentLoaded', () => {
+        translatePage('fr');
+      });
+    </script>
+  </body>
+</html>
+

@@ -1,0 +1,201 @@
+---
+// Debug page to test login functionality on Netlify
+---
+
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Login - Mad2Moi</title>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .debug-log { font-family: 'Courier New', monospace; }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-100 p-4">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-2xl font-bold mb-4 text-gray-900">🔍 Debug Login - Mad2Moi</h1>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <!-- Left Column -->
+            <div class="space-y-4">
+                <!-- Environment Info -->
+                <div class="bg-white rounded-lg shadow-lg p-4">
+                    <h2 class="text-lg font-semibold mb-3">🌐 Environment Info</h2>
+                    <div class="debug-log bg-gray-50 p-3 rounded text-xs space-y-1">
+                        <div>URL: <span id="currentUrl" class="break-all"></span></div>
+                        <div>Protocol: <span id="protocol"></span></div>
+                        <div>Host: <span id="host"></span></div>
+                        <div>localStorage: <span id="localStorageSupport"></span></div>
+                    </div>
+                </div>
+
+                <!-- Login Test -->
+                <div class="bg-white rounded-lg shadow-lg p-4">
+                    <h2 class="text-lg font-semibold mb-3">🔐 Login Test</h2>
+                    <form id="debugLoginForm" class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Username</label>
+                            <input type="text" id="debugUsername" value="Amine" class="w-full p-2 border rounded text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Password</label>
+                            <input type="password" id="debugPassword" value="123456" class="w-full p-2 border rounded text-sm">
+                        </div>
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">
+                            Test Login
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Test Results -->
+                <div class="bg-white rounded-lg shadow-lg p-4">
+                    <h2 class="text-lg font-semibold mb-3">✅ Test Results</h2>
+                    <div id="testResults" class="space-y-2 max-h-32 overflow-y-auto"></div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="space-y-4">
+                <!-- Debug Output -->
+                <div class="bg-white rounded-lg shadow-lg p-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-lg font-semibold">📝 Debug Log</h2>
+                        <button id="clearLog" class="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700">
+                            Clear
+                        </button>
+                    </div>
+                    <div id="debugOutput" class="debug-log bg-gray-50 p-3 rounded text-xs h-80 overflow-y-auto"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Debug logging function
+        function debugLog(message, type = 'info') {
+            const output = document.getElementById('debugOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            const emoji = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️';
+            const logEntry = `[${timestamp}] ${emoji} ${message}\n`;
+            output.textContent += logEntry;
+            output.scrollTop = output.scrollHeight;
+            console.log(message);
+        }
+
+        // Test function to add to results
+        function addTestResult(test, status, details = '') {
+            const results = document.getElementById('testResults');
+            const div = document.createElement('div');
+            div.className = `p-2 rounded text-sm ${status === 'pass' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
+            div.innerHTML = `
+                <strong>${status === 'pass' ? '✅' : '❌'} ${test}</strong>
+                ${details ? `<br><small>${details}</small>` : ''}
+            `;
+            results.appendChild(div);
+        }
+
+        // Initialize environment info
+        document.addEventListener('DOMContentLoaded', function() {
+            debugLog('🚀 Debug page loaded');
+            
+            // Fill environment info
+            document.getElementById('currentUrl').textContent = window.location.href;
+            document.getElementById('protocol').textContent = window.location.protocol;
+            document.getElementById('host').textContent = window.location.host;
+            
+            // Test localStorage
+            try {
+                localStorage.setItem('test', 'test');
+                localStorage.removeItem('test');
+                document.getElementById('localStorageSupport').textContent = '✅ Supported';
+                addTestResult('localStorage Support', 'pass');
+                debugLog('✅ localStorage is working');
+            } catch (e) {
+                document.getElementById('localStorageSupport').textContent = '❌ Not supported: ' + e.message;
+                addTestResult('localStorage Support', 'fail', e.message);
+                debugLog('❌ localStorage error: ' + e.message, 'error');
+            }
+
+            // Define users (same as your main login)
+            const users = {
+                'Amine': '123456',
+                'Daniel': '111222333',
+                'Jules': 'jules123',
+                'Alicia': 'alicia123'
+            };
+
+            debugLog('👥 Users loaded: ' + Object.keys(users).join(', '));
+            addTestResult('User Data Loading', 'pass', `${Object.keys(users).length} users loaded`);
+
+            // Clear log functionality
+            document.getElementById('clearLog').addEventListener('click', function() {
+                document.getElementById('debugOutput').textContent = '';
+                debugLog('🧹 Log cleared');
+            });
+
+            // Debug login form
+            document.getElementById('debugLoginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                debugLog('🔐 Testing login...');
+                
+                const username = document.getElementById('debugUsername').value;
+                const password = document.getElementById('debugPassword').value;
+                
+                debugLog(`👤 Username: "${username}"`);
+                debugLog(`🔑 Password: "${password}" (length: ${password.length})`);
+                debugLog(`📋 Expected password: "${users[username]}"`);
+                
+                // Test credential check
+                if (users[username] && users[username] === password) {
+                    debugLog('✅ Credentials match!', 'success');
+                    addTestResult('Credential Validation', 'pass', `${username} / ${password}`);
+                    
+                    try {
+                        // Test localStorage storage
+                        localStorage.setItem('adminLoggedIn', 'true');
+                        localStorage.setItem('adminUser', username);
+                        
+                        debugLog('💾 Data stored in localStorage', 'success');
+                        debugLog(`📱 adminLoggedIn: ${localStorage.getItem('adminLoggedIn')}`);
+                        debugLog(`📱 adminUser: ${localStorage.getItem('adminUser')}`);
+                        
+                        addTestResult('localStorage Storage', 'pass', 'Login state saved');
+                        
+                        // Test redirect (but don't actually redirect)
+                        const redirectUrl = '/admin/dashboard';
+                        debugLog(`🎯 Would redirect to: ${redirectUrl}`, 'success');
+                        addTestResult('Redirect Preparation', 'pass', `Target: ${redirectUrl}`);
+                        
+                        // Check if dashboard page exists
+                        fetch('/admin/dashboard')
+                            .then(response => {
+                                if (response.ok) {
+                                    debugLog('✅ Dashboard page is accessible', 'success');
+                                    addTestResult('Dashboard Accessibility', 'pass', `Status: ${response.status}`);
+                                } else {
+                                    debugLog(`⚠️ Dashboard returned status: ${response.status}`, 'warning');
+                                    addTestResult('Dashboard Accessibility', 'fail', `Status: ${response.status}`);
+                                }
+                            })
+                            .catch(err => {
+                                debugLog(`❌ Dashboard fetch error: ${err.message}`, 'error');
+                                addTestResult('Dashboard Accessibility', 'fail', err.message);
+                            });
+                        
+                    } catch (storageError) {
+                        debugLog(`❌ localStorage storage failed: ${storageError.message}`, 'error');
+                        addTestResult('localStorage Storage', 'fail', storageError.message);
+                    }
+                } else {
+                    debugLog('❌ Credentials do not match!', 'error');
+                    addTestResult('Credential Validation', 'fail', `Expected: ${users[username]}, Got: ${password}`);
+                }
+            });
+
+            debugLog('🎯 Debug page ready - Fill in credentials and click "Test Login"');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+---
+// Join Mad2Moi CTA Component
+---
+
+<!-- Join Mad2Moi CTA Section -->
+<section class="py-16 bg-gradient-to-br from-secondary-900 via-secondary-800 to-primary-900 relative overflow-hidden">
+  <!-- Background decoration -->
+  <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.03"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-30"></div>
+  
+  <div class="container mx-auto px-4 relative z-10">
+    <div class="text-center max-w-4xl mx-auto">
+      <!-- Section Header -->
+      <div class="mb-12">
+        <h2 class="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight" data-translate="Prêt(e) à explorer un nouveau monde ?">
+          Prêt(e) à explorer un nouveau monde ?
+        </h2>
+        <p class="text-xl text-secondary-200 leading-relaxed max-w-3xl mx-auto" data-translate="Rejoignez la communauté Mad2Moi et découvrez un espace d'exploration érotique mature, 
+          bienveillant et éducatif. Votre voyage commence ici.">
+          Rejoignez la communauté Mad2Moi et découvrez un espace d'exploration érotique mature, 
+          bienveillant et éducatif. Votre voyage commence ici.
+        </p>
+      </div>
+
+      <!-- CTA Button -->
+      <div class="mb-8">
+        <a
+          href="https://mad2moi.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="group relative inline-block overflow-hidden bg-gradient-to-r from-primary-500 via-sensual-500 to-primary-600 text-white text-xl px-12 py-5 rounded-xl shadow-2xl hover:shadow-primary-500/50 transition-all duration-500 hover:scale-105 animate-pulse-slow"
+        >
+          <!-- Animated background elements -->
+          <div class="absolute inset-0 bg-gradient-to-r from-primary-600 via-sensual-600 to-primary-700 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+          <!-- Floating particles -->
+          <div class="absolute -top-1 -left-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
+          <div class="absolute -top-1 -right-1 w-3 h-3 bg-pink-400 rounded-full animate-ping delay-100"></div>
+          <div class="absolute -bottom-1 -left-1 w-3 h-3 bg-blue-400 rounded-full animate-ping delay-200"></div>
+
+          <!-- Button content -->
+          <span class="relative z-10 flex items-center text-2xl font-bold">
+            <span class="mr-3 group-hover:scale-125 transition-transform duration-300">🚀</span>
+            <span data-translate="Rejoindre Mad2Moi.com">Rejoindre Mad2Moi.com</span>
+            <span class="ml-3 group-hover:scale-125 transition-transform duration-300">✨</span>
+          </span>
+
+          <!-- Shimmer effect -->
+          <div class="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+        </a>
+      </div>
+
+      <!-- Additional benefits -->
+      <div class="grid md:grid-cols-3 gap-8 mt-12">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-primary-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="text-3xl">🔒</span>
+          </div>
+          <h3 class="text-xl font-semibold text-white mb-2" data-translate="Confidentialité Totale">Confidentialité Totale</h3>
+          <p class="text-secondary-300" data-translate="Vos informations et conversations restent privées et sécurisées.">Vos informations et conversations restent privées et sécurisées.</p>
+        </div>
+        
+        <div class="text-center">
+          <div class="w-16 h-16 bg-sensual-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="text-3xl">🎓</span>
+          </div>
+          <h3 class="text-xl font-semibold text-white mb-2" data-translate="Contenu Éducatif">Contenu Éducatif</h3>
+          <p class="text-secondary-300" data-translate="Apprenez et explorez dans un environnement bienveillant et informatif.">Apprenez et explorez dans un environnement bienveillant et informatif.</p>
+        </div>
+        
+        <div class="text-center">
+          <div class="w-16 h-16 bg-primary-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="text-3xl">👥</span>
+          </div>
+          <h3 class="text-xl font-semibold text-white mb-2" data-translate="Communauté Bienveillante">Communauté Bienveillante</h3>
+          <p class="text-secondary-300" data-translate="Rejoignez des personnes partageant les mêmes valeurs et intérêts.">Rejoignez des personnes partageant les mêmes valeurs et intérêts.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Custom animations for the CTA button */
+  @keyframes ping {
+    75%, 100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+
+  .animate-ping {
+    animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  .delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+</style>

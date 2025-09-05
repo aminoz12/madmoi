@@ -1,0 +1,205 @@
+---
+export interface Props {
+  postSlug: string;
+  postTitle: string;
+}
+
+const { postSlug, postTitle } = Astro.props;
+---
+
+<section class="mt-16 p-8 bg-secondary-800/50 rounded-xl border border-secondary-700/30 shadow-xl">
+  <h3 class="text-3xl font-bold text-white mb-8 font-elegant text-center">
+    💬 Commentaires ({Math.floor(Math.random() * 50) + 10})
+  </h3>
+  
+  <!-- Comment Form -->
+  <div class="mb-10 p-8 bg-secondary-700/30 rounded-xl border border-secondary-600/30 shadow-lg">
+    <h4 class="text-xl font-semibold text-white mb-6 flex items-center gap-3">
+      <span class="text-2xl">✍️</span>
+      Ajouter un commentaire
+    </h4>
+    <form id="comment-form" class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-secondary-300 mb-2">Votre nom *</label>
+          <input
+            type="text"
+            name="name"
+            placeholder="Entrez votre nom"
+            class="w-full px-4 py-3 bg-secondary-600/50 border border-secondary-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent text-white placeholder-secondary-300 transition-all duration-200"
+            required
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-secondary-300 mb-2">Votre email</label>
+          <input
+            type="email"
+            name="email"
+            placeholder="Entrez votre email (optionnel)"
+            class="w-full px-4 py-3 bg-secondary-600/50 border border-secondary-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent text-white placeholder-secondary-300 transition-all duration-200"
+          />
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-secondary-300 mb-2">Votre commentaire *</label>
+        <textarea
+          name="comment"
+          placeholder="Partagez vos pensées sur cet article..."
+          rows="5"
+          class="w-full px-4 py-3 bg-secondary-600/50 border border-secondary-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent text-white placeholder-secondary-300 resize-none transition-all duration-200"
+          required
+        ></textarea>
+      </div>
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <label class="flex items-center gap-3 text-sm text-secondary-300 hover:text-secondary-200 transition-colors cursor-pointer">
+          <input type="checkbox" name="notify" class="w-4 h-4 rounded border-secondary-500/30 bg-secondary-600/50 text-primary-400 focus:ring-primary-400 focus:ring-2">
+          <span>M'notifier des réponses</span>
+        </label>
+        <button
+          type="submit"
+          class="px-8 py-3 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold rounded-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-2"
+        >
+          <span>💬</span>
+          <span>Publier le commentaire</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Comments List -->
+  <div class="space-y-6">
+    <!-- Sample Comments -->
+    <div class="comment-item p-6 bg-secondary-700/20 rounded-xl border border-secondary-600/20 hover:border-secondary-500/40 transition-all duration-200">
+      <div class="flex items-start gap-4 mb-4">
+        <div class="w-12 h-12 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
+          M
+        </div>
+        <div class="flex-1">
+          <div class="flex flex-wrap items-center gap-3 mb-2">
+            <span class="font-semibold text-white text-lg">Marie Sensuelle</span>
+            <span class="text-sm text-secondary-400">Il y a 2 heures</span>
+            <span class="text-xs px-3 py-1 bg-primary-500/20 text-primary-300 rounded-full border border-primary-500/30">Auteur</span>
+          </div>
+          <p class="text-secondary-200 leading-relaxed text-base">
+            Excellent article ! J'ai particulièrement apprécié la section sur la sécurité. C'est tellement important de bien s'informer avant de commencer. Merci pour ce contenu de qualité ! 🌟
+          </p>
+          <div class="flex items-center gap-6 mt-4">
+            <button class="flex items-center gap-2 text-sm text-secondary-400 hover:text-primary-400 transition-colors hover:scale-105">
+              <span class="text-lg">👍</span>
+              <span class="font-medium">12</span>
+            </button>
+            <button class="flex items-center gap-2 text-sm text-secondary-400 hover:text-primary-400 transition-colors hover:scale-105">
+              <span class="text-lg">💬</span>
+              <span class="font-medium">Répondre</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="comment-item p-6 bg-secondary-700/20 rounded-xl border border-secondary-600/20 hover:border-secondary-500/40 transition-all duration-200 ml-8 md:ml-12">
+      <div class="flex items-start gap-4 mb-4">
+        <div class="w-10 h-10 bg-gradient-to-br from-sensual-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold text-base shadow-lg">
+          L
+        </div>
+        <div class="flex-1">
+          <div class="flex flex-wrap items-center gap-3 mb-2">
+            <span class="font-semibold text-white">Luc Libertine</span>
+            <span class="text-sm text-secondary-400">Il y a 1 heure</span>
+          </div>
+          <p class="text-secondary-200 leading-relaxed text-base">
+            @Marie Sensuelle Je suis d'accord ! La sécurité est primordiale. Avez-vous des conseils spécifiques pour les débutants ? 🤔
+          </p>
+          <div class="flex items-center gap-6 mt-4">
+            <button class="flex items-center gap-2 text-sm text-secondary-400 hover:text-primary-400 transition-colors hover:scale-105">
+              <span class="text-lg">👍</span>
+              <span class="font-medium">3</span>
+            </button>
+            <button class="flex items-center gap-2 text-sm text-secondary-400 hover:text-primary-400 transition-colors hover:scale-105">
+              <span class="text-lg">💬</span>
+              <span class="font-medium">Répondre</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="comment-item p-6 bg-secondary-700/20 rounded-xl border border-secondary-600/20 hover:border-secondary-500/40 transition-all duration-200">
+      <div class="flex items-start gap-4 mb-4">
+        <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
+          S
+        </div>
+        <div class="flex-1">
+          <div class="flex flex-wrap items-center gap-3 mb-2">
+            <span class="font-semibold text-white text-lg">Sophie Explorer</span>
+            <span class="text-sm text-secondary-400">Il y a 3 heures</span>
+          </div>
+          <p class="text-secondary-200 leading-relaxed text-base">
+            Très informatif ! J'ai appris beaucoup de choses sur les protocoles de sécurité. C'est rassurant de voir qu'il y a une approche aussi structurée. 👏
+          </p>
+          <div class="flex items-center gap-6 mt-4">
+            <button class="flex items-center gap-2 text-sm text-secondary-400 hover:text-primary-400 transition-colors hover:scale-105">
+              <span class="text-lg">👍</span>
+              <span class="font-medium">8</span>
+            </button>
+            <button class="flex items-center gap-2 text-sm text-secondary-400 hover:text-primary-400 transition-colors hover:scale-105">
+              <span class="text-lg">💬</span>
+              <span class="font-medium">Répondre</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Load More Comments -->
+  <div class="text-center mt-8 pt-6 border-t border-secondary-600/30">
+    <button class="px-6 py-3 bg-secondary-700/50 hover:bg-secondary-600/50 text-secondary-300 hover:text-white rounded-lg transition-all duration-200 border border-secondary-600/30 hover:border-secondary-500/50 flex items-center gap-2 mx-auto">
+      <span>📄</span>
+      <span>Charger plus de commentaires</span>
+    </button>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const commentForm = document.getElementById('comment-form');
+    
+    if (commentForm) {
+      commentForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(e.target as HTMLFormElement);
+        const commentData = {
+          name: formData.get('name'),
+          email: formData.get('email'),
+          comment: formData.get('comment'),
+          notify: formData.get('notify') === 'on',
+          postSlug: '{postSlug}',
+          postTitle: '{postTitle}'
+        };
+        
+        try {
+          // Simuler l'envoi du commentaire
+          console.log('Comment submitted:', commentData);
+          
+          // Ici vous pourriez envoyer à votre API
+          // const response = await fetch('/api/comments', {
+          //   method: 'POST',
+          //   headers: { 'Content-Type': 'application/json' },
+          //   body: JSON.stringify(commentData)
+          // });
+          
+          // Afficher un message de succès
+          alert('Commentaire publié avec succès ! Il sera visible après modération.');
+          (e.target as HTMLFormElement).reset();
+          
+        } catch (error) {
+          console.error('Comment submission error:', error);
+          alert('Une erreur est survenue. Veuillez réessayer.');
+        }
+      });
+    }
+  });
+</script>
+

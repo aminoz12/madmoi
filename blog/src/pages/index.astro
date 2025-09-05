@@ -1,0 +1,532 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Translate from '../components/common/Translate.astro';
+import LiveChat from '../components/common/LiveChat.astro';
+import { getPublishedArticles, getCategories, initializeDatabase } from '../utils/database.js';
+import CategoryBadge from '../components/CategoryBadge.astro';
+
+// Initialize database connection
+await initializeDatabase();
+
+// Get real data from database
+let featuredPosts = [];
+let recentPosts = [];
+let categories = [];
+let stats = [];
+
+try {
+  // Get all published articles
+  const allArticles = await getPublishedArticles();
+  
+  // Featured posts (only articles marked as featured)
+  featuredPosts = allArticles
+    .filter(article => article.is_featured)
+    .slice(0, 3) // Limit to 3 featured articles
+    .map(article => {
+      console.log('🔍 Debug: Processing featured article:', {
+        title: article.title,
+        featured_image_raw: article.featured_image,
+        has_image: !!article.featured_image
+      });
+      
+      return {
+        slug: article.slug,
+        title: article.title,
+        excerpt: article.excerpt || '',
+        image: (() => {
+          try {
+            if (article.featured_image) {
+              const parsed = JSON.parse(article.featured_image);
+              console.log('🔍 Debug: Parsed featured_image for featured post:', parsed);
+              return parsed?.url || null;
+            }
+            console.log('⚠️ No featured_image for featured post:', article.title);
+            return null;
+          } catch (error) {
+            console.error('❌ Error parsing featured_image for featured post:', error, 'Raw data:', article.featured_image);
+            return null;
+          }
+        })(),
+        category: article.category_name || 'Uncategorized',
+        categoryColor: article.category_color || '#3B82F6',
+        publishedAt: article.published_at ? new Date(article.published_at).toISOString().split('T')[0] : new Date(article.created_at).toISOString().split('T')[0],
+        readTime: calculateReadTime(article.content),
+        author: article.author_name || 'Mad2Moi Team',
+        tags: (() => {
+          try {
+            if (article.tags) {
+              return JSON.parse(article.tags);
+            }
+            return [];
+          } catch (error) {
+            console.error('❌ Error parsing tags for featured post:', error, 'Raw data:', article.tags);
+            return [];
+          }
+        })(),
+        isExplicit: false // TODO: Add explicit content flag to database
+      };
+    });
+  
+  // Recent posts (latest published articles, excluding featured ones)
+  recentPosts = allArticles
+    .filter(article => !article.is_featured)
+    .slice(0, 3) // Limit to 3 recent articles
+    .map(article => {
+      console.log('🔍 Debug: Processing recent article:', {
+        title: article.title,
+        featured_image_raw: article.featured_image,
+        has_image: !!article.featured_image
+      });
+      
+      return {
+        slug: article.slug,
+        title: article.title,
+        excerpt: article.excerpt || '',
+        image: (() => {
+          try {
+            if (article.featured_image) {
+              const parsed = JSON.parse(article.featured_image);
+              console.log('🔍 Debug: Parsed featured_image for recent post:', parsed);
+              return parsed?.url || null;
+            }
+            console.log('⚠️ No featured_image for recent post:', article.title);
+            return null;
+          } catch (error) {
+            console.error('❌ Error parsing featured_image for recent post:', error, 'Raw data:', article.featured_image);
+            return null;
+          }
+        })(),
+        category: article.category_name || 'Uncategorized',
+        categoryColor: article.category_color || '#3B82F6',
+        publishedAt: article.published_at ? new Date(article.published_at).toISOString().split('T')[0] : new Date(article.created_at).toISOString().split('T')[0],
+        readTime: calculateReadTime(article.content)
+      };
+    });
+  
+  // Get categories (only featured ones with article counts)
+  const allCategories = await getCategories();
+  categories = allCategories
+    .filter(cat => cat.article_count > 0) // Only categories with articles
+    .slice(0, 5) // Limit to 5 categories
+    .map(cat => ({
+      name: cat.name,
+      count: cat.article_count,
+      color: cat.color ? getColorClasses(cat.color) : getCategoryColor(cat.name), // Use database color, fallback to helper
+      icon: cat.icon || getCategoryIcon(cat.name) // Use database icon, fallback to helper
+    }));
+  
+  // Calculate real stats
+  const totalArticles = allArticles.length;
+  const totalCategories = allCategories.length; // Use total categories, not just those with articles
+  
+  stats = [
+    { number: `${totalArticles}+`, label: 'Articles Érotiques', icon: '📚' },
+    { number: '50K+', label: 'Lecteurs Mensuels', icon: '👥' }, // Keep this as is
+    { number: `${totalCategories}+`, label: 'Catégories', icon: '🏷️' },
+    { number: '100%', label: 'Contenu Mature', icon: '🔥' } // Keep this as is
+  ];
+  
+  console.log('✅ Homepage data loaded:', {
+    featuredPosts: featuredPosts.length,
+    recentPosts: recentPosts.length,
+    categories: categories.length,
+    totalArticles
+  });
+  
+  // Debug: Show sample data
+  if (featuredPosts.length > 0) {
+    console.log('🔍 Debug: Sample featured post:', featuredPosts[0]);
+  }
+  if (recentPosts.length > 0) {
+    console.log('🔍 Debug: Sample recent post:', recentPosts[0]);
+  }
+  if (categories.length > 0) {
+    console.log('🔍 Debug: Sample category:', categories[0]);
+  }
+  
+} catch (error) {
+  console.error('❌ Error loading homepage data:', error);
+  // Fallback to empty arrays if database fails
+  featuredPosts = [];
+  recentPosts = [];
+  categories = [];
+  stats = [
+    { number: '0+', label: 'Articles Érotiques', icon: '📚' },
+    { number: '50K+', label: 'Lecteurs Mensuels', icon: '👥' },
+    { number: '0+', label: 'Catégories', icon: '🏷️' },
+    { number: '100%', label: 'Contenu Mature', icon: '🔥' }
+  ];
+}
+
+// Helper function to calculate read time
+function calculateReadTime(content) {
+  const wordsPerMinute = 200;
+  const wordCount = content.split(/\s+/).length;
+  const readTime = Math.ceil(wordCount / wordsPerMinute);
+  return `${readTime} min`;
+}
+
+// Helper function to get category color
+function getCategoryColor(categoryName) {
+  // Use a default color for any category name
+  return 'bg-blue-100 text-blue-800';
+}
+
+// Helper function to get category icon
+function getCategoryIcon(categoryName) {
+  // Use a default icon for any category name
+  return '📁';
+}
+
+// Helper function to convert hex color to Tailwind CSS classes
+function getColorClasses(hexColor) {
+  // Default color if hex is invalid
+  const defaultColor = 'bg-blue-100 text-blue-800';
+  
+  if (!hexColor || !hexColor.startsWith('#')) {
+    return defaultColor;
+  }
+  
+  // Simple color mapping for common hex values
+  const colorMap = {
+    '#3B82F6': 'bg-blue-100 text-blue-800', // Blue
+    '#EF4444': 'bg-red-100 text-red-800', // Red
+    '#10B981': 'bg-green-100 text-green-800', // Green
+    '#F59E0B': 'bg-yellow-100 text-yellow-800', // Yellow
+    '#8B5CF6': 'bg-purple-100 text-purple-800', // Purple
+    '#EC4899': 'bg-pink-100 text-pink-800', // Pink
+    '#06B6D4': 'bg-cyan-100 text-cyan-800', // Cyan
+    '#84CC16': 'bg-lime-100 text-lime-800' // Lime
+  };
+  
+  return colorMap[hexColor.toUpperCase()] || defaultColor;
+}
+---
+
+<Layout 
+  title="Mad2Moi Blog - Exploration Érotique & Bien-être"
+  description="🚀 Découvrez l'univers fascinant de l'exploration érotique ! 💋 Conseils experts, guides pratiques et témoignages authentiques pour une vie sexuelle épanouie ✨"
+  type="website"
+  ogImage="/images/og-homepage.jpg"
+  twitterImage="/images/twitter-homepage.jpg"
+  tags={['exploration érotique', 'bien-être sexuel', 'BDSM', 'libertinage', 'roleplay', 'sex toys', 'communication sexuelle', 'éducation sexuelle', 'plaisir', 'intimité']}
+>
+  <!-- Hero Section -->
+  <section class="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <!-- Background with animated elements -->
+    <div class="absolute inset-0 bg-gradient-to-br from-secondary-900 via-primary-900 to-secondary-800">
+      <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ec4899" fill-opacity="0.05"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-30"></div>
+    </div>
+    
+    <!-- Floating elements -->
+    <div class="absolute top-20 left-20 w-32 h-32 bg-primary-500/20 rounded-full blur-xl animate-pulse-slow"></div>
+    <div class="absolute bottom-20 right-20 w-40 h-40 bg-sensual-500/20 rounded-full blur-xl animate-pulse-slow delay-1000"></div>
+    
+    <div class="relative z-10 text-center max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="mb-8 animate-fade-in-up">
+        <p class="inline-block px-4 py-2 bg-primary-500/20 backdrop-blur-sm border border-primary-500/30 rounded-full text-primary-300 text-sm font-medium mb-6 hover-glow animate-float" data-translate="🔥 Contenu Mature & Sophistiqué">
+          🔥 Contenu Mature & Sophistiqué
+        </p>
+      </div>
+      
+              <h1 class="text-5xl md:text-7xl font-bold mb-8 text-glow animate-fade-in-up" style="animation-delay: 0.2s;">
+          <span class="text-white">Mad2Moi</span>
+          <span class="text-primary-400">Blog</span>
+        </h1>
+        
+        <p class="text-xl md:text-2xl text-secondary-300 mb-12 max-w-4xl mx-auto leading-relaxed animate-fade-in-up" style="animation-delay: 0.4s;" data-translate="Explorez l'univers fascinant de l'exploration érotique et du bien-être sexuel à travers des articles éducatifs, des guides pratiques et des témoignages authentiques. Pour adultes consentants uniquement.">
+          Explorez l'univers fascinant de l'exploration érotique et du bien-être sexuel à travers des articles éducatifs, 
+          des guides pratiques et des témoignages authentiques. 
+          <span class="text-primary-400 font-semibold">Pour adultes consentants uniquement.</span>
+        </p>
+      
+      <div class="flex flex-col sm:flex-row gap-6 justify-center items-center animate-fade-in-up" style="animation-delay: 0.6s;">
+        <a href="/blog" class="btn-primary text-lg px-10 py-4 group">
+          <span class="mr-2">🔍</span>
+          <span data-translate="Explorer le Blog">Explorer le Blog</span>
+          <span class="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+        </a>
+        <a href="/about" class="btn-secondary text-lg px-10 py-4">
+          <span class="mr-2">💡</span>
+          <span data-translate="En savoir plus">En savoir plus</span>
+        </a>
+        <a 
+          href="https://mad2moi.com" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="group relative overflow-hidden bg-gradient-to-r from-primary-500 via-sensual-500 to-primary-600 text-white text-lg px-10 py-4 rounded-lg shadow-2xl hover:shadow-primary-500/50 transition-all duration-500 hover:scale-105 animate-pulse-slow"
+        >
+          <!-- Animated background elements -->
+          <div class="absolute inset-0 bg-gradient-to-r from-primary-600 via-sensual-600 to-primary-700 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          
+          <!-- Floating particles -->
+          <div class="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping"></div>
+          <div class="absolute -top-1 -right-1 w-2 h-2 bg-pink-400 rounded-full animate-ping delay-100"></div>
+          <div class="absolute -bottom-1 -left-1 w-2 h-2 bg-blue-400 rounded-full animate-ping delay-200"></div>
+          
+          <!-- Button content -->
+          <span class="relative z-10 flex items-center">
+            <span class="mr-2 group-hover:scale-125 transition-transform duration-300">🚀</span>
+            <span class="font-semibold" data-translate="Rejoindre Mad2Moi.com">Rejoindre Mad2Moi.com</span>
+            <span class="ml-2 group-hover:scale-125 transition-transform duration-300">✨</span>
+          </span>
+          
+          <!-- Shimmer effect -->
+          <div class="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+        </a>
+      </div>
+      
+
+      
+      <!-- Warning banner -->
+      <div class="mt-12 p-4 bg-red-900/30 border border-red-500/50 rounded-lg backdrop-blur-sm">
+        <p class="text-red-200 text-sm" data-translate="⚠️ Attention : Ce blog contient du contenu explicite destiné aux adultes. Vous devez avoir 18 ans ou plus pour accéder à ce contenu.">
+          ⚠️ <strong>Attention :</strong> Ce blog contient du contenu explicite destiné aux adultes. 
+          Vous devez avoir 18 ans ou plus pour accéder à ce contenu.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Posts -->
+  <section class="py-20 bg-gradient-to-b from-secondary-900/50 to-secondary-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-bold text-white mb-6 font-elegant" data-translate="Articles à la Une">
+          Articles à la Une
+        </h2>
+        <p class="text-xl text-secondary-300 max-w-3xl mx-auto" data-translate="Nos articles les plus populaires et les plus récents sur l'exploration érotique">
+          Nos articles les plus populaires et les plus récents sur l'exploration érotique
+        </p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {featuredPosts.map((post, index) => (
+          <article class="card-sensual hover:border-glow group card-hover animate-fade-in-up" style={`animation-delay: ${0.8 + index * 0.1}s`}>
+            <div class="aspect-video bg-gradient-to-br from-primary-800/50 to-secondary-800/50 rounded-xl mb-6 overflow-hidden border border-primary-700/30 relative">
+              {post.image ? (
+                <img 
+                  src={post.image} 
+                  alt={post.title}
+                  class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                  decoding="async"
+                  onload="this.style.opacity='1'"
+                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
+                  style="opacity: 0; transition: opacity 0.3s ease-in-out"
+                />
+              ) : null}
+              
+              <div class={`w-full h-full flex items-center justify-center ${post.image ? 'absolute inset-0' : ''}`} style={post.image ? 'display: none' : ''}>
+                <span class="text-6xl opacity-60">{post.isExplicit ? '🔥' : '💋'}</span>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-3 mb-4">
+              <CategoryBadge name={post.category} color={post.categoryColor} size="sm" />
+              {post.isExplicit && (
+                <p class="text-xs font-medium px-3 py-1 bg-red-500/20 text-red-300 rounded-full border border-red-500/30" data-translate="🔥 Explicite">
+                  🔥 Explicite
+                </p>
+              )}
+              <p class="text-sm text-secondary-400">{post.readTime}</p>
+            </div>
+            
+            <h3 class="text-xl font-semibold text-white mb-3 group-hover:text-primary-400 transition-colors font-elegant">
+              <a href={`/blog/${post.slug}`} data-translate={post.title}>{post.title}</a>
+            </h3>
+            
+            <!-- Related categories links -->
+            <div class="mb-3">
+              {post.tags.slice(0, 2).map((tag) => (
+                <a href={`/blog?category=${tag.toLowerCase()}`} class="inline-block text-xs px-2 py-1 bg-secondary-800/50 text-secondary-300 rounded border border-secondary-600/30 hover:bg-primary-500/20 hover:text-primary-300 transition-colors mr-2">
+                  #{tag}
+                </a>
+              ))}
+            </div>
+            
+            <p class="text-secondary-300 mb-4 line-clamp-3 leading-relaxed" data-translate={post.excerpt}>{post.excerpt}</p>
+            
+            <div class="flex items-center justify-between text-sm text-secondary-400">
+              <p class="font-medium text-primary-300">{post.author}</p>
+              <time datetime={post.publishedAt} data-translate={new Date(post.publishedAt).toLocaleDateString('fr-FR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}>
+                {new Date(post.publishedAt).toLocaleDateString('fr-FR', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </time>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section class="py-20 bg-gradient-to-b from-secondary-900 to-secondary-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-bold text-white mb-6 font-elegant" data-translate="Explorez par Catégorie">
+          Explorez par Catégorie
+        </h2>
+        <p class="text-xl text-secondary-300 max-w-3xl mx-auto" data-translate="Trouvez le contenu qui correspond à vos intérêts et vos envies d'exploration">
+          Trouvez le contenu qui correspond à vos intérêts et vos envies d'exploration
+        </p>
+      </div>
+      
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+        {categories.map((category) => (
+          <a 
+            href={`/blog?category=${category.name.toLowerCase()}`}
+            class="card text-center group hover:border-primary-500/50 transform hover:scale-105 transition-all duration-300"
+          >
+            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
+              {category.icon}
+            </div>
+            <div class={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mb-4 ${category.color}`} data-translate={category.name}>
+              {category.name}
+            </div>
+            <p class="text-3xl font-bold text-white mb-2">{category.count}</p>
+            <p class="text-sm text-secondary-400" data-translate="articles">articles</p>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Recent Posts -->
+  <section class="py-20 bg-gradient-to-b from-secondary-800 to-secondary-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between mb-16">
+        <div>
+          <h2 class="text-4xl md:text-5xl font-bold text-white mb-6 font-elegant" data-translate="Articles Récents">
+            Articles Récents
+          </h2>
+          <p class="text-xl text-secondary-300" data-translate="Les dernières publications du blog">
+            Les dernières publications du blog
+          </p>
+        </div>
+        <a href="/blog" class="btn-primary text-lg px-8 py-4">
+          <span class="mr-2">📚</span>
+          <span data-translate="Voir tous les articles">Voir tous les articles</span>
+        </a>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {recentPosts.map((post) => (
+          <article class="card group hover:border-primary-500/50 transform hover:scale-105 transition-all duration-300">
+            <div class="aspect-video bg-gradient-to-br from-secondary-800/50 to-secondary-700/50 rounded-xl mb-6 overflow-hidden border border-secondary-600/30 relative">
+              {post.image ? (
+                <img 
+                  src={post.image} 
+                  alt={post.title}
+                  class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                  decoding="async"
+                  onload="this.style.opacity='1'"
+                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
+                  style="opacity: 0; transition: opacity 0.3s ease-in-out"
+                />
+              ) : null}
+              
+              <div class={`w-full h-full flex items-center justify-center ${post.image ? 'absolute inset-0' : ''}`} style={post.image ? 'display: none' : ''}>
+                <span class="text-5xl opacity-60">💋</span>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-2 mb-4">
+              <CategoryBadge name={post.category} color={post.categoryColor} size="sm" />
+              <p class="text-sm text-secondary-400">{post.readTime}</p>
+            </div>
+            
+            <h3 class="text-lg font-semibold text-white mb-3 group-hover:text-primary-400 transition-colors font-elegant">
+              <a href={`/blog/${post.slug}`} data-translate={post.title}>{post.title}</a>
+            </h3>
+            
+            <p class="text-secondary-300 mb-4 line-clamp-2 leading-relaxed" data-translate={post.excerpt}>{post.excerpt}</p>
+            
+            <time class="text-sm text-secondary-400" datetime={post.publishedAt} data-translate={new Date(post.publishedAt).toLocaleDateString('fr-FR', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}>
+              {new Date(post.publishedAt).toLocaleDateString('fr-FR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </time>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+
+
+  <!-- Stats Section -->
+  <section class="py-20 bg-gradient-to-b from-secondary-900 to-black">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        {stats.map((stat, index) => (
+          <div class="group animate-fade-in-up hover-lift" style={`animation-delay: ${index * 0.1}s`}>
+            <div class="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">
+              {stat.icon}
+            </div>
+            <p class="text-4xl font-bold text-white mb-2 text-glow">{stat.number}</p>
+            <p class="text-secondary-400" data-translate={stat.label}>{stat.label}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+
+
+  <!-- Live Chat -->
+  <LiveChat />
+</Layout>
+
+<style>
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  /* Custom animations for the new button */
+  @keyframes ping {
+    75%, 100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+  
+  .animate-ping {
+    animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  
+  .delay-100 {
+    animation-delay: 100ms;
+  }
+  
+  .delay-200 {
+    animation-delay: 200ms;
+  }
+</style>
+
+
+

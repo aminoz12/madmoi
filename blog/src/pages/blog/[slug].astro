@@ -1,0 +1,290 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getArticleBySlug, incrementViewCount, initializeDatabase } from '../../utils/database.js';
+import Breadcrumbs from '../../components/blog/Breadcrumbs.astro';
+import CategoryBadge from '../../components/CategoryBadge.astro';
+import VisitorCounter from '../../components/blog/VisitorCounter.astro';
+import SocialShare from '../../components/blog/SocialShare.astro';
+import CommentSection from '../../components/blog/CommentSection.astro';
+import CallToAction from '../../components/blog/CallToAction.astro';
+import EngagementStats from '../../components/blog/EngagementStats.astro';
+
+// Get the slug from the URL - Dynamic approach
+const { slug } = Astro.params;
+
+// Get article data dynamically
+let article = null;
+try {
+  await initializeDatabase();
+  const { getArticleBySlug } = await import('../../utils/database.js');
+  article = await getArticleBySlug(slug);
+  
+  if (!article) {
+    console.warn('❌ Article not found for slug:', slug);
+    return new Response(null, {
+      status: 404,
+      statusText: 'Article not found'
+    });
+  }
+  
+  console.log('✅ Article loaded for slug:', slug, 'Title:', article.title);
+} catch (error) {
+  console.error('❌ Error loading article:', error);
+  return new Response(null, {
+    status: 500,
+    statusText: 'Error loading article'
+  });
+}
+
+// Increment view count
+if (article?.id) {
+  try {
+    await incrementViewCount(article.id);
+  } catch (error) {
+    console.error('❌ Error incrementing view count:', error);
+  }
+}
+
+// Parse tags
+const tags = article?.tags ? (typeof article.tags === 'string' ? JSON.parse(article.tags) : article.tags) : [];
+
+// Parse featured image with better error handling
+const featuredImage = (() => {
+  try {
+    if (!article?.featured_image) return null;
+    
+    if (typeof article.featured_image === 'string') {
+      try {
+        const parsed = JSON.parse(article.featured_image);
+        if (parsed?.url) {
+          // Convert relative admin URLs to absolute
+          if (parsed.url.startsWith('/uploads/')) {
+            parsed.url = `http://localhost:4322${parsed.url}`;
+          }
+        }
+        return parsed;
+      } catch (parseError) {
+        // If not JSON, check if it's a direct URL
+        if (article.featured_image.startsWith('http://') || 
+            article.featured_image.startsWith('https://') ||
+            article.featured_image.startsWith('data:image/')) {
+          return { url: article.featured_image };
+        }
+        
+        // Try as relative URL from admin
+        if (article.featured_image.startsWith('/uploads/')) {
+          return { url: `http://localhost:4322${article.featured_image}` };
+        }
+        
+        console.warn('⚠️ Unrecognized image format:', article.featured_image.substring(0, 100));
+        return null;
+      }
+    }
+    
+    return article.featured_image;
+  } catch (error) {
+    console.error('❌ Error processing featured_image:', error);
+    return null;
+  }
+})();
+
+// Format dates
+const publishedDate = article?.published_at ? new Date(article.published_at) : new Date(article?.created_at);
+const formattedDate = publishedDate.toLocaleDateString('fr-FR', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+});
+
+// Set page title and meta
+const pageTitle = article?.meta_title || article?.title || 'Article';
+const pageDescription = article?.meta_description || article?.excerpt || 'Découvrez cet article sur Mad2Moi';
+---
+
+<Layout title={pageTitle} description={pageDescription}>
+  <div class="min-h-screen bg-gradient-to-br from-primary-900 via-secondary-900 to-primary-800">
+    <!-- Hero Section -->
+    <div class="relative overflow-hidden">
+      <!-- Background Image -->
+      {featuredImage && (
+        <div class="absolute inset-0 z-0">
+          <img 
+            src={featuredImage.url} 
+            alt={article.title}
+            class="w-full h-full object-cover opacity-20"
+          />
+          <div class="absolute inset-0 bg-gradient-to-b from-transparent via-secondary-900/50 to-secondary-900"></div>
+        </div>
+      )}
+      
+      <!-- Content -->
+      <div class="relative z-10 container mx-auto px-4 py-16">
+        <div class="max-w-4xl mx-auto text-center">
+          <!-- Category Badge -->
+          {article?.category_name && (
+            <CategoryBadge 
+              name={article.category_name} 
+              color={article.category_color} 
+              size="lg" 
+              className="mb-6"
+            />
+          )}
+          
+          <!-- Title -->
+          <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+            {article?.title}
+          </h1>
+          
+          <!-- Excerpt -->
+          {article?.excerpt && (
+            <p class="text-xl text-secondary-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+              {article.excerpt}
+            </p>
+          )}
+          
+          <!-- Meta Information -->
+          <div class="flex flex-wrap items-center justify-center gap-6 text-secondary-400 text-sm">
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+              </svg>
+              <span>{article?.author_name || 'Mad2Moi Team'}</span>
+            </div>
+            
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+              </svg>
+              <span>{formattedDate}</span>
+            </div>
+            
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+              </svg>
+              <span>{article?.view_count || 0} vues</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Breadcrumbs -->
+    <div class="container mx-auto px-4 -mt-8 mb-8">
+      <Breadcrumbs 
+        items={[
+          { label: 'Accueil', href: '/' },
+          { label: 'Blog', href: '/blog' },
+          { label: article?.category_name || 'Article', href: `/blog?category=${article?.category_slug || ''}` },
+          { label: article?.title || 'Article', href: '#' }
+        ]}
+      />
+    </div>
+
+    <!-- Article Content -->
+    <div class="container mx-auto px-4 pb-16">
+      <div class="max-w-4xl mx-auto">
+        <article class="prose prose-lg prose-invert prose-primary max-w-none">
+          <!-- Featured Image -->
+          {featuredImage && featuredImage.url && (
+            <div class="mb-8 rounded-lg overflow-hidden relative">
+              <img 
+                src={featuredImage.url} 
+                alt={featuredImage.alt || article?.title}
+                class="w-full h-auto"
+                loading="eager"
+                decoding="async"
+                onload="this.style.opacity='1'"
+                onerror="this.style.display='none'; console.error('Failed to load article image:', this.src)"
+                style="opacity: 0; transition: opacity 0.3s ease-in-out"
+              />
+            </div>
+          )}
+          
+          <!-- Article Content -->
+          <div class="text-secondary-300 leading-relaxed" set:html={article?.content || ''} />
+          
+          <!-- Tags -->
+          {tags && tags.length > 0 && (
+            <div class="mt-8 pt-8 border-t border-secondary-700">
+              <h3 class="text-lg font-semibold text-white mb-4">Tags</h3>
+              <div class="flex flex-wrap gap-2">
+                {tags.map(tag => (
+                  <span class="px-3 py-1 bg-primary-900/30 border border-primary-700/50 rounded-full text-sm text-primary-400">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </article>
+        
+        <!-- Engagement Stats -->
+        <div class="mt-12">
+          <EngagementStats 
+            views={article?.view_count || 0}
+            likes={0}
+            shares={0}
+          />
+        </div>
+        
+        <!-- Social Share -->
+        <div class="mt-8">
+          <SocialShare 
+            title={article?.title}
+            url={Astro.url.href}
+            description={article?.excerpt}
+          />
+        </div>
+        
+        <!-- Call to Action -->
+        <div class="mt-12">
+          <CallToAction />
+        </div>
+        
+        <!-- Comments Section -->
+        <div class="mt-12">
+          <CommentSection articleId={article?.id} />
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .prose {
+    color: #D1D5DB;
+  }
+  
+  .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+    color: #FFFFFF;
+  }
+  
+  .prose strong {
+    color: #F3F4F6;
+  }
+  
+  .prose a {
+    color: #60A5FA;
+  }
+  
+  .prose a:hover {
+    color: #93C5FD;
+  }
+  
+  .prose blockquote {
+    border-left-color: #60A5FA;
+    background-color: rgba(96, 165, 250, 0.1);
+  }
+  
+  .prose code {
+    background-color: rgba(156, 163, 175, 0.2);
+    color: #F3F4F6;
+  }
+  
+  .prose pre {
+    background-color: #1F2937;
+    border: 1px solid #374151;
+  }
+</style>

@@ -1,0 +1,300 @@
+---
+import Layout from '../layouts/Layout.astro';
+import LiveChat from '../components/common/LiveChat.astro';
+import JoinMad2MoiCTA from '../components/common/JoinMad2MoiCTA.astro';
+
+const currentYear = new Date().getFullYear();
+---
+
+<Layout 
+  title="Conditions d'Utilisation | Mad2Moi Blog"
+  description="Consultez les conditions d'utilisation de Mad2Moi Blog. Règles, droits et responsabilités pour l'utilisation de notre site de contenu pour adultes."
+  tags={['Conditions', 'Utilisation', 'Règles', 'Droits', 'Responsabilités']}
+  type="website"
+  canonical="https://your-domain.com/terms"
+>
+  <!-- Hero Section -->
+  <section class="relative py-20 bg-gradient-to-br from-secondary-900 via-primary-900 to-secondary-800 overflow-hidden">
+    <div class="absolute inset-0 bg-black/20"></div>
+    <div class="absolute inset-0 bg-gradient-to-r from-secondary-600/20 to-primary-600/20"></div>
+    
+    <div class="relative z-10 text-center max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h1 class="text-5xl md:text-6xl font-bold mb-6 text-glow">
+        <span class="text-white">📋 Conditions</span>
+        <span class="text-primary-400">d'Utilisation</span>
+      </h1>
+      <p class="text-xl text-secondary-300 mb-8 leading-relaxed">
+        Veuillez lire attentivement ces conditions avant d'utiliser notre site. 
+        Votre utilisation du site constitue votre acceptation de ces conditions.
+      </p>
+      
+      <div class="inline-flex items-center px-4 py-2 bg-primary-500/20 backdrop-blur-sm border border-primary-500/30 rounded-full text-primary-300 text-sm font-medium">
+        <span class="mr-2">📅</span>
+        Dernière mise à jour : {currentYear}
+      </div>
+    </div>
+  </section>
+
+  <!-- Terms Content -->
+  <section class="py-20 bg-gradient-to-b from-secondary-900 to-secondary-800">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="prose prose-invert max-w-none">
+        
+        <!-- Introduction -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">1. Acceptation des Conditions</h2>
+          <p class="text-secondary-300 leading-relaxed">
+            En accédant et en utilisant Mad2Moi Blog, vous acceptez d'être lié par ces conditions d'utilisation. 
+            Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser notre site. 
+            Ces conditions s'appliquent à tous les visiteurs, utilisateurs et autres personnes qui accèdent au site.
+          </p>
+        </div>
+
+        <!-- Age Requirement -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">2. Exigence d'Âge</h2>
+          <p class="text-secondary-300 leading-relaxed mb-4">
+            Ce site contient du contenu explicite destiné aux adultes. Vous devez avoir au moins 18 ans pour :
+          </p>
+          <ul class="text-secondary-300 space-y-2 ml-6">
+            <li>Accéder à ce site web</li>
+            <li>Consulter le contenu</li>
+            <li>Participer aux discussions ou commentaires</li>
+            <li>Utiliser nos services</li>
+          </ul>
+          <p class="text-secondary-300 leading-relaxed mt-4">
+            En utilisant ce site, vous déclarez et garantissez que vous avez au moins 18 ans.
+          </p>
+        </div>
+
+        <!-- Content Description -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">3. Description du Contenu</h2>
+          <p class="text-secondary-300 leading-relaxed mb-4">
+            Mad2Moi Blog propose du contenu éducatif et informatif sur :
+          </p>
+          <ul class="text-secondary-300 space-y-2 ml-6">
+            <li>Bien-être sexuel et érotique</li>
+            <li>Pratiques BDSM et libertines</li>
+            <li>Communication dans les relations</li>
+            <li>Exploration des fantasmes</li>
+            <li>Conseils sur les sex toys</li>
+            <li>Éducation sexuelle pour adultes</li>
+          </ul>
+          <p class="text-secondary-300 leading-relaxed mt-4">
+            Tous les contenus sont destinés à des fins éducatives et informatives uniquement.
+          </p>
+        </div>
+
+        <!-- User Conduct -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">4. Comportement des Utilisateurs</h2>
+          <p class="text-secondary-300 leading-relaxed mb-4">
+            En utilisant notre site, vous vous engagez à :
+          </p>
+          <ul class="text-secondary-300 space-y-2 ml-6">
+            <li>Respecter les autres utilisateurs et leurs opinions</li>
+            <li>Ne pas publier de contenu offensant, abusif ou illégal</li>
+            <li>Ne pas utiliser le site à des fins commerciales non autorisées</li>
+            <li>Ne pas tenter de perturber le fonctionnement du site</li>
+            <li>Respecter les droits de propriété intellectuelle</li>
+            <li>Fournir des informations exactes et véridiques</li>
+          </ul>
+        </div>
+
+        <!-- Prohibited Activities -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">5. Activités Interdites</h2>
+          <p class="text-secondary-300 leading-relaxed mb-4">
+            Il est strictement interdit de :
+          </p>
+          <ul class="text-secondary-300 space-y-2 ml-6">
+            <li>Publier du contenu pornographique explicite ou illégal</li>
+            <li>Harceler, menacer ou intimider d'autres utilisateurs</li>
+            <li>Partager des informations personnelles sans consentement</li>
+            <li>Utiliser des bots ou scripts automatisés</li>
+            <li>Tenter de pirater ou compromettre la sécurité du site</li>
+            <li>Violer les droits de propriété intellectuelle</li>
+            <li>Utiliser le site pour des activités criminelles</li>
+          </ul>
+        </div>
+
+        <!-- Intellectual Property -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">6. Propriété Intellectuelle</h2>
+          <p class="text-secondary-300 leading-relaxed mb-4">
+            Le contenu de ce site, y compris mais sans s'y limiter :
+          </p>
+          <ul class="text-secondary-300 space-y-2 ml-6">
+            <li>Textes, articles et guides</li>
+            <li>Images, graphiques et logos</li>
+            <li>Code source et logiciels</li>
+            <li>Design et mise en page</li>
+            <li>Marques et noms commerciaux</li>
+          </ul>
+          <p class="text-secondary-300 leading-relaxed mt-4">
+            Est protégé par les droits d'auteur et autres lois sur la propriété intellectuelle. 
+            Toute reproduction ou distribution non autorisée est strictement interdite.
+          </p>
+        </div>
+
+        <!-- User Content -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">7. Contenu des Utilisateurs</h2>
+          <p class="text-secondary-300 leading-relaxed mb-4">
+            En soumettant du contenu à notre site, vous :
+          </p>
+          <ul class="text-secondary-300 space-y-2 ml-6">
+            <li>Garantissez que vous détenez les droits sur ce contenu</li>
+            <li>Nous accordez une licence non exclusive d'utilisation</li>
+            <li>Acceptez que le contenu puisse être modéré ou supprimé</li>
+            <li>Êtes responsable de la légalité et de l'exactitude du contenu</li>
+          </ul>
+        </div>
+
+        <!-- Privacy and Data -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">8. Confidentialité et Données</h2>
+          <p class="text-secondary-300 leading-relaxed">
+            La collecte et l'utilisation de vos données personnelles sont régies par notre 
+            <a href="/privacy" class="text-primary-400 hover:text-primary-300 underline">Politique de Confidentialité</a>. 
+            En utilisant ce site, vous consentez à la collecte et à l'utilisation de vos informations 
+            conformément à cette politique.
+          </p>
+        </div>
+
+        <!-- Disclaimers -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">9. Avertissements et Exclusions</h2>
+          <p class="text-secondary-300 leading-relaxed mb-4">
+            <strong>Avertissement médical :</strong> Le contenu de ce site ne constitue pas un avis médical 
+            et ne remplace pas la consultation d'un professionnel de santé qualifié.
+          </p>
+          <p class="text-secondary-300 leading-relaxed mb-4">
+            <strong>Contenu éducatif :</strong> Toutes les informations sont fournies "en l'état" 
+            sans garantie d'exactitude, de complétude ou de pertinence.
+          </p>
+          <p class="text-secondary-300 leading-relaxed">
+            <strong>Responsabilité limitée :</strong> Mad2Moi Blog ne peut être tenu responsable 
+            des dommages directs, indirects ou consécutifs résultant de l'utilisation de ce site.
+          </p>
+        </div>
+
+        <!-- Modifications -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">10. Modifications des Conditions</h2>
+          <p class="text-secondary-300 leading-relaxed">
+            Nous nous réservons le droit de modifier ces conditions à tout moment. 
+            Les modifications prendront effet immédiatement après leur publication sur le site. 
+            Votre utilisation continue du site après toute modification constitue votre acceptation 
+            des nouvelles conditions.
+          </p>
+        </div>
+
+        <!-- Termination -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">11. Résiliation</h2>
+          <p class="text-secondary-300 leading-relaxed">
+            Nous pouvons suspendre ou résilier votre accès au site à tout moment, 
+            sans préavis, pour violation de ces conditions ou pour toute autre raison. 
+            Vous pouvez également cesser d'utiliser le site à tout moment.
+          </p>
+        </div>
+
+        <!-- Governing Law -->
+        <div class="card mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">12. Droit Applicable</h2>
+          <p class="text-secondary-300 leading-relaxed">
+            Ces conditions sont régies et interprétées conformément aux lois françaises. 
+            Tout litige sera soumis à la compétence exclusive des tribunaux français.
+          </p>
+        </div>
+
+        <!-- Contact -->
+        <div class="card">
+          <h2 class="text-2xl font-bold text-white mb-4">13. Contact</h2>
+          <p class="text-secondary-300 leading-relaxed mb-4">
+            Pour toute question concernant ces conditions d'utilisation, contactez-nous :
+          </p>
+          <div class="bg-secondary-800/50 rounded-lg p-4 border border-secondary-700/30">
+            <p class="text-secondary-300">
+              <strong>Email :</strong> legal@mad2moi-blog.com<br>
+              <strong>Adresse :</strong> [Votre adresse]<br>
+              <strong>Responsable légal :</strong> [Nom du responsable]
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact CTA -->
+  <section class="py-20 bg-gradient-to-r from-primary-900 to-secondary-900">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="text-3xl font-bold text-white mb-6 font-elegant">
+        Questions sur les Conditions ?
+      </h2>
+      <p class="text-xl text-primary-200 mb-10 max-w-3xl mx-auto leading-relaxed">
+        Notre équipe est là pour clarifier tout point concernant nos conditions d'utilisation 
+        et vous aider à comprendre vos droits et responsabilités.
+      </p>
+      
+      <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
+        <a href="/contact" class="btn-primary text-lg px-10 py-4 group">
+          <span class="mr-2">📧</span>
+          Nous Contacter
+          <span class="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+        </a>
+        <a href="/privacy" class="btn-secondary text-lg px-10 py-4">
+          <span class="mr-2">🔒</span>
+          Politique de Confidentialité
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Chat -->
+  <LiveChat />
+  
+  <!-- Join Mad2Moi CTA -->
+  <JoinMad2MoiCTA />
+</Layout>
+
+<style>
+  .text-glow {
+    text-shadow: 0 0 20px rgba(236, 72, 153, 0.5);
+  }
+  
+  .prose {
+    color: #cbd5e1;
+  }
+  
+  .prose h2 {
+    color: #f8fafc;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+  
+  .prose p {
+    margin-bottom: 1rem;
+  }
+  
+  .prose ul {
+    margin-bottom: 1rem;
+  }
+  
+  .prose li {
+    margin-bottom: 0.5rem;
+  }
+  
+  .prose a {
+    color: #ec4899;
+    text-decoration: underline;
+  }
+  
+  .prose a:hover {
+    color: #be185d;
+  }
+</style>
+

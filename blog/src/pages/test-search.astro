@@ -1,0 +1,63 @@
+---
+// Simple test page for search functionality
+const { searchParams } = Astro.url;
+const search = searchParams.get('search') || '';
+const category = searchParams.get('category') || '';
+
+console.log('🔍 Test Search Page Debug:');
+console.log('  URL:', Astro.url.toString());
+console.log('  Search:', search);
+console.log('  Category:', category);
+console.log('  Search params:', Object.fromEntries(searchParams.entries()));
+---
+
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Search - Mad2Moi</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .form-group { margin: 20px 0; }
+        input, button { padding: 10px; margin: 5px; font-size: 16px; }
+        .debug { background: #f0f0f0; padding: 20px; margin: 20px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Test Search Functionality</h1>
+    
+    <div class="debug">
+        <h3>Debug Information:</h3>
+        <p><strong>Current URL:</strong> {Astro.url.toString()}</p>
+        <p><strong>Search Parameter:</strong> "{search}"</p>
+        <p><strong>Category Parameter:</strong> "{category}"</p>
+        <p><strong>All Parameters:</strong> {JSON.stringify(Object.fromEntries(searchParams.entries()))}</p>
+    </div>
+    
+    <div class="form-group">
+        <h3>Test Search Form:</h3>
+        <form method="GET" action="/test-search">
+            <input type="search" name="search" value={search} placeholder="Enter search term..." />
+            <input type="text" name="category" value={category} placeholder="Category (optional)" />
+            <button type="submit">Search</button>
+        </form>
+    </div>
+    
+    <div class="form-group">
+        <h3>Test Links:</h3>
+        <p><a href="/test-search?search=test">Test search for "test"</a></p>
+        <p><a href="/test-search?search=entrepreneuriat">Test search for "entrepreneuriat"</a></p>
+        <p><a href="/test-search?category=roleplay">Test category "roleplay"</a></p>
+        <p><a href="/test-search?search=chiffre&category=roleplay">Test search "chiffre" in category "roleplay"</a></p>
+    </div>
+    
+    <div class="form-group">
+        <h3>Results:</h3>
+        {search && <p>🔍 Search term: <strong>{search}</strong></p>}
+        {category && <p>📂 Category: <strong>{category}</strong></p>}
+        {!search && !category && <p>No search or category specified</p>}
+    </div>
+    
+    <p><a href="/blog">← Back to Blog</a></p>
+</body>
+</html>

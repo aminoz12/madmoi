@@ -1,0 +1,339 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Paramètres - Mad2Moi Admin">
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Paramètres</h1>
+        <p class="text-lg text-gray-600 dark:text-gray-300">Gérez les utilisateurs et configurez les API</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Management Section -->
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-8">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Gestion des Utilisateurs</h2>
+      <button 
+        id="addUserBtn"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        <span>Ajouter un utilisateur</span>
+      </button>
+    </div>
+
+    <!-- Users Table -->
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead class="bg-gray-50 dark:bg-gray-700">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Utilisateur</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Rôle</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Statut</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Dernière connexion</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700" id="usersTableBody">
+          <!-- Users will be populated by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- API Configuration Section -->
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-8">
+    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">Configuration des API</h2>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- GPT-5 API Configuration -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white">OpenAI GPT-5 API</h3>
+        <div class="space-y-3">
+          <div>
+            <label for="gptApiKey" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Clé API</label>
+            <div class="relative">
+              <input 
+                type="password" 
+                id="gptApiKey" 
+                placeholder="sk-..." 
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+              <button 
+                id="toggleGptKey"
+                class="absolute right-2 top-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                type="button"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div>
+            <label for="gptModel" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Modèle</label>
+            <select id="gptModel" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option value="gpt-5">GPT-5</option>
+              <option value="gpt-4-turbo">GPT-4 Turbo</option>
+              <option value="gpt-4">GPT-4</option>
+              <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+            </select>
+          </div>
+          <button 
+            id="saveGptApi"
+            class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            Sauvegarder GPT API
+          </button>
+        </div>
+      </div>
+
+      <!-- Google Analytics API Configuration -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Google Analytics API</h3>
+        <div class="space-y-3">
+          <div>
+            <label for="gaClientId" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Client ID</label>
+            <input 
+              type="text" 
+              id="gaClientId" 
+              placeholder="123456789-abcdef..." 
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+          </div>
+          <div>
+            <label for="gaClientSecret" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Client Secret</label>
+            <div class="relative">
+              <input 
+                type="password" 
+                id="gaClientSecret" 
+                placeholder="GOCSPX-..." 
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+              <button 
+                id="toggleGaSecret"
+                class="absolute right-2 top-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                type="button"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div>
+            <label for="gaPropertyId" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Property ID</label>
+            <input 
+              type="text" 
+              id="gaPropertyId" 
+              placeholder="123456789" 
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+          </div>
+          <button 
+            id="saveGaApi"
+            class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            Sauvegarder GA API
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add User Modal -->
+  <div id="addUserModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Ajouter un utilisateur</h3>
+          <button id="closeAddUserModal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <form id="addUserForm" class="space-y-4">
+          <div>
+            <label for="newUsername" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nom d'utilisateur</label>
+            <input 
+              type="text" 
+              id="newUsername" 
+              required
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+          </div>
+
+          <div>
+            <label for="newPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mot de passe</label>
+            <input 
+              type="password" 
+              id="newPassword" 
+              required
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+          </div>
+
+          <div>
+            <label for="newEmail" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email *</label>
+            <input 
+              type="email" 
+              id="newEmail" 
+              required
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="newFirstName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Prénom</label>
+              <input 
+                type="text" 
+                id="newFirstName" 
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+            </div>
+            <div>
+              <label for="newLastName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nom</label>
+              <input 
+                type="text" 
+                id="newLastName" 
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+            </div>
+          </div>
+
+          <div>
+            <label for="newRole" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rôle</label>
+            <select id="newRole" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option value="">Sélectionner un rôle</option>
+              <option value="admin">Administrateur (Contrôle total)</option>
+              <option value="editor">Éditeur (Gestion articles + catégories)</option>
+              <option value="author">Auteur (Articles uniquement)</option>
+            </select>
+          </div>
+
+          <div class="flex items-center justify-end space-x-3 pt-4">
+            <button 
+              type="button"
+              id="cancelAddUser"
+              class="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              Annuler
+            </button>
+            <button 
+              type="submit"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
+              Ajouter
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit User Modal -->
+  <div id="editUserModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Modifier l'utilisateur</h3>
+          <button id="closeEditUserModal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <form id="editUserForm" class="space-y-4">
+          <input type="hidden" id="editUserId">
+          
+          <div>
+            <label for="editUsername" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nom d'utilisateur</label>
+            <input 
+              type="text" 
+              id="editUsername" 
+              required
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+          </div>
+
+          <div>
+            <label for="editPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nouveau mot de passe (laisser vide pour ne pas changer)</label>
+            <input 
+              type="password" 
+              id="editPassword" 
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+          </div>
+
+          <div>
+            <label for="editEmail" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email *</label>
+            <input 
+              type="email" 
+              id="editEmail" 
+              required
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="editFirstName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Prénom</label>
+              <input 
+                type="text" 
+                id="editFirstName" 
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+            </div>
+            <div>
+              <label for="editLastName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nom</label>
+              <input 
+                type="text" 
+                id="editLastName" 
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+            </div>
+          </div>
+
+          <div>
+            <label for="editRole" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rôle</label>
+            <select id="editRole" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option value="admin">Administrateur (Contrôle total)</option>
+              <option value="editor">Éditeur (Gestion articles + catégories)</option>
+              <option value="author">Auteur (Articles uniquement)</option>
+            </select>
+          </div>
+
+          <div class="flex items-center justify-end space-x-3 pt-4">
+            <button 
+              type="button"
+              id="cancelEditUser"
+              class="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              Annuler
+            </button>
+            <button 
+              type="submit"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
+              Modifier
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script src="/scripts/settings.js" is:inline></script>
+

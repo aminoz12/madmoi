@@ -1,0 +1,294 @@
+---
+export interface Props {
+  title: string;
+  description?: string;
+}
+
+import '../styles/global.css';
+import EnvMeta from '../components/EnvMeta.astro';
+
+const { title, description = "Tableau de Bord Admin Blog Mad2Moi" } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+  <meta name="description" content={description}>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  
+  <!-- Environment variables for frontend -->
+  <EnvMeta />
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .glass-effect { backdrop-filter: blur(20px); background: rgba(255, 255, 255, 0.9); }
+    .glass-effect-dark { backdrop-filter: blur(20px); background: rgba(15, 23, 42, 0.9); }
+    .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+    .card-hover-dark:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.2), 0 10px 10px -5px rgba(147, 51, 234, 0.1); }
+    .nav-item { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .nav-item:hover { transform: translateX(8px); }
+    .gradient-text { background: linear-gradient(135deg, #3b82f6, #8b5cf6, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .gradient-text-dark { background: linear-gradient(135deg, #60a5fa, #a78bfa, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .mode-transition { transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+  </style>
+</head>
+<body class="h-full font-inter mode-transition">
+  <div class="min-h-full bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-slate-800">
+    <!-- Enhanced Header -->
+    <header class="bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-slate-800 shadow-lg border-b border-gray-200/50 dark:border-gray-700/50 backdrop-blur-xl mode-transition">
+      <div class="flex items-center justify-between px-6 py-5 lg:px-8">
+        <div class="flex items-center space-x-4">
+          <div class="w-12 h-12 bg-gradient-to-br from-blue-600 via-purple-600 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg overflow-hidden">
+            <img src="/logo.png" alt="Logo Mad2Moi" class="w-8 h-8 object-contain">
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold gradient-text dark:gradient-text-dark">Mad2Moi Admin</h1>
+            <p class="text-sm text-gray-600 dark:text-gray-300">Tableau de Bord Professionnel</p>
+          </div>
+        </div>
+        
+        <div class="flex items-center space-x-6">
+          <!-- Dark Mode Toggle -->
+          <button id="modeToggle" class="relative p-3 bg-gray-100 dark:bg-gray-800 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 group shadow-lg">
+            <!-- Sun Icon (Light Mode) -->
+            <svg id="sunIcon" class="w-5 h-5 text-yellow-500 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+            <!-- Moon Icon (Dark Mode) -->
+            <svg id="moonIcon" class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+            </svg>
+          </button>
+
+          <!-- User Info -->
+          <div class="flex items-center space-x-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm px-4 py-2 rounded-xl border border-gray-200/50 dark:border-gray-600/50">
+            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+              <span id="currentUserInitial" class="text-white font-semibold text-sm"></span>
+            </div>
+            <div class="hidden md:block">
+              <p id="currentUser" class="text-sm font-medium text-gray-700 dark:text-gray-200"></p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Administrateur</p>
+            </div>
+          </div>
+          
+          <!-- Enhanced Logout Button -->
+          <button id="logoutBtn" class="bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-2.5 rounded-xl hover:from-red-600 hover:to-pink-600 transition-all duration-300 text-sm font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 flex items-center space-x-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+            </svg>
+            <span>Déconnexion</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="flex">
+      <!-- Enhanced Sidebar -->
+      <aside class="w-72 bg-gradient-to-b from-slate-700 to-slate-600 dark:from-slate-900 dark:to-slate-800 shadow-2xl min-h-screen relative mode-transition">
+        <!-- Sidebar Background Pattern -->
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.15)_1px,transparent_0)] dark:bg-[radial-gradient(circle_at_1px_1px,rgba(59,130,246,0.2)_1px,transparent_0)] bg-[size:20px_20px]"></div>
+        
+        <nav class="relative z-10 mt-10 px-6">
+          <div class="space-y-2">
+            <a href="/admin/dashboard" data-nav="dashboard" class="nav-item group flex items-center px-4 py-4 text-sm font-semibold text-gray-800 dark:text-gray-200 rounded-2xl hover:bg-white/90 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-all duration-300 bg-white/80 dark:bg-gray-800/60 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50">
+              <div class="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl flex items-center justify-center mr-4 group-hover:from-blue-500/30 group-hover:to-purple-500/30 transition-all duration-300">
+                <svg class="h-5 w-5 text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"></path>
+                </svg>
+              </div>
+              <span>Tableau de Bord</span>
+              <div class="ml-auto w-2 h-2 bg-blue-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </a>
+            
+            <a href="/admin/analytics" data-nav="analytics" class="nav-item group flex items-center px-4 py-4 text-sm font-semibold text-gray-800 dark:text-gray-200 rounded-2xl hover:bg-white/90 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-all duration-300 bg-white/80 dark:bg-gray-800/60 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50">
+              <div class="w-10 h-10 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl flex items-center justify-center mr-4 group-hover:from-green-500/30 group-hover:to-emerald-500/30 transition-all duration-300">
+                <svg class="h-5 w-5 text-green-600 dark:text-green-400 group-hover:text-green-700 dark:group-hover:text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+              </div>
+              <span>Analyses</span>
+            </a>
+            
+            <a href="/admin/articles" data-nav="articles" class="nav-item group flex items-center px-4 py-4 text-sm font-semibold text-gray-800 dark:text-gray-200 rounded-2xl hover:bg-white/90 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-all duration-300 bg-white/80 dark:bg-gray-800/60 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50">
+              <div class="w-10 h-10 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl flex items-center justify-center mr-4 group-hover:from-purple-500/30 group-hover:to-pink-500/30 transition-all duration-300">
+                <svg class="h-5 w-5 text-purple-600 dark:text-purple-400 group-hover:text-purple-700 dark:group-hover:text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+                </svg>
+              </div>
+              <span>Articles</span>
+            </a>
+            
+            <a href="/admin/gpt-articles" data-nav="gpt-articles" class="nav-item group flex items-center px-4 py-4 text-sm font-semibold text-gray-800 dark:text-gray-200 rounded-2xl hover:bg-white/90 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-all duration-300 bg-white/80 dark:bg-gray-800/60 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50">
+              <div class="w-10 h-10 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-xl flex items-center justify-center mr-4 group-hover:from-emerald-500/30 group-hover:to-teal-500/30 transition-all duration-300">
+                <svg class="h-5 w-5 text-emerald-600 dark:text-emerald-400 group-hover:text-emerald-700 dark:hover:text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                </svg>
+              </div>
+              <span>GPT-5 Articles</span>
+            </a>
+            
+            <a href="/admin/categories" data-nav="categories" class="nav-item group flex items-center px-4 py-4 text-sm font-semibold text-gray-800 dark:text-gray-200 rounded-2xl hover:bg-white/90 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-all duration-300 bg-white/80 dark:bg-gray-800/60 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50">
+              <div class="w-10 h-10 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-xl flex items-center justify-center mr-4 group-hover:from-indigo-500/30 group-hover:to-purple-500/30 transition-all duration-300">
+                <svg class="h-5 w-5 text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-700 dark:group-hover:text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                </svg>
+              </div>
+              <span>Catégories</span>
+            </a>
+            
+            <a href="/admin/subscribers" data-nav="subscribers" class="nav-item group flex items-center px-4 py-4 text-sm font-semibold text-gray-800 dark:text-gray-200 rounded-2xl hover:bg-white/90 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-all duration-300 bg-white/80 dark:bg-gray-800/60 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50">
+              <div class="w-10 h-10 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-xl flex items-center justify-center mr-4 group-hover:from-yellow-500/30 group-hover:to-orange-500/30 transition-all duration-300">
+                <svg class="h-5 w-5 text-yellow-600 dark:text-yellow-400 group-hover:text-yellow-700 dark:group-hover:text-yellow-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+              </div>
+              <span>Abonnés</span>
+            </a>
+            
+            <a href="/admin/chat" data-nav="chat" class="nav-item group flex items-center px-4 py-4 text-sm font-semibold text-gray-800 dark:text-gray-200 rounded-2xl hover:bg-white/90 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-all duration-300 bg-white/80 dark:bg-gray-800/60 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50">
+              <div class="w-10 h-10 bg-gradient-to-br from-cyan-500/20 to-teal-500/20 rounded-xl flex items-center justify-center mr-4 group-hover:from-cyan-500/30 group-hover:to-teal-500/30 transition-all duration-300">
+                <svg class="h-5 w-5 text-cyan-600 dark:text-cyan-400 group-hover:text-cyan-700 dark:group-hover:text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+              </div>
+              <span>Chat</span>
+            </a>
+            
+            <a href="/admin/settings" data-nav="settings" class="nav-item group flex items-center px-4 py-4 text-sm font-semibold text-gray-800 dark:text-gray-200 rounded-2xl hover:bg-white/90 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-all duration-300 bg-white/80 dark:bg-gray-800/60 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50">
+              <div class="w-10 h-10 bg-gradient-to-br from-gray-500/20 to-slate-500/20 rounded-xl flex items-center justify-center mr-4 group-hover:from-gray-500/30 group-hover:to-slate-500/30 transition-all duration-300">
+                <svg class="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+              </div>
+              <span>Paramètres</span>
+            </a>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- Enhanced Main content -->
+      <main class="flex-1 p-8 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-slate-800 min-h-screen mode-transition">
+        <div class="max-w-7xl mx-auto">
+          <slot />
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="/scripts/role-control.js" is:inline></script>
+  <script>
+    // Session validation and authentication check
+    document.addEventListener('DOMContentLoaded', async function() {
+      // Check if user is authenticated
+      const sessionId = localStorage.getItem('sessionId');
+      if (!sessionId) {
+        console.log('❌ No session found, redirecting to login');
+        window.location.href = '/';
+        return;
+      }
+      
+      try {
+        // Validate session with server
+        const response = await fetch(`/api/session?sessionId=${sessionId}`);
+        if (!response.ok) {
+          console.log('❌ Session invalid, redirecting to login');
+          localStorage.clear();
+          window.location.href = '/';
+          return;
+        }
+        
+        const sessionData = await response.json();
+        console.log('✅ Session validated:', sessionData);
+        
+        // Set current user info
+        const currentUser = sessionData.username || 'Admin';
+        const currentUserElement = document.getElementById('currentUser');
+        const currentUserInitial = document.getElementById('currentUserInitial');
+        
+        if (currentUserElement) currentUserElement.textContent = `Bienvenue, ${currentUser}`;
+        if (currentUserInitial) currentUserInitial.textContent = currentUser.charAt(0).toUpperCase();
+        
+      } catch (error) {
+        console.error('❌ Session validation failed:', error);
+        localStorage.clear();
+        window.location.href = '/';
+        return;
+      }
+      
+      // Dark mode functionality
+      let isDarkMode = false;
+      const html = document.documentElement;
+      const modeToggle = document.getElementById('modeToggle');
+      const sunIcon = document.getElementById('sunIcon');
+      const moonIcon = document.getElementById('moonIcon');
+
+      function toggleMode() {
+        isDarkMode = !isDarkMode;
+        
+        if (isDarkMode) {
+          html.classList.add('dark');
+          sunIcon.classList.remove('hidden');
+          moonIcon.classList.add('hidden');
+        } else {
+          html.classList.remove('dark');
+          moonIcon.classList.remove('hidden');
+          sunIcon.classList.add('hidden');
+        }
+      }
+
+      // Start with dark mode by default
+      isDarkMode = true;
+      html.classList.add('dark');
+      sunIcon.classList.remove('hidden');
+      moonIcon.classList.add('hidden');
+
+      modeToggle.addEventListener('click', toggleMode);
+
+      // Enhanced logout functionality
+      document.getElementById('logoutBtn').addEventListener('click', async function() {
+        // Add loading state
+        this.innerHTML = '<svg class="animate-spin w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Déconnexion...';
+        this.disabled = true;
+        
+        try {
+          // Destroy session on server
+          await fetch(`/api/session?sessionId=${sessionId}`, {
+            method: 'DELETE'
+          });
+        } catch (error) {
+          console.error('❌ Failed to destroy session:', error);
+        }
+        
+        // Clear session data
+        localStorage.clear();
+        
+        // Redirect to login
+        window.location.href = '/';
+      });
+
+      // Add active state to current nav item
+      const currentPath = window.location.pathname;
+      const navItems = document.querySelectorAll('nav a');
+      
+      navItems.forEach(item => {
+        if (item.getAttribute('href') === currentPath) {
+          item.classList.add('bg-blue-100', 'dark:bg-blue-900/40', 'text-blue-900', 'dark:text-blue-100', 'border-blue-300', 'dark:border-blue-500');
+          item.classList.remove('bg-white/80', 'dark:bg-gray-800/60', 'text-gray-800', 'dark:text-gray-200', 'border-gray-200/50', 'dark:border-gray-600/50');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+

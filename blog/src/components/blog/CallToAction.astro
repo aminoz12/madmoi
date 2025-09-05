@@ -1,0 +1,108 @@
+---
+export interface Props {
+  type: 'newsletter' | 'related-posts' | 'contact' | 'social-follow';
+  title?: string;
+  description?: string;
+  buttonText?: string;
+  buttonLink?: string;
+  icon?: string;
+  variant?: 'primary' | 'secondary' | 'accent';
+}
+
+const { 
+  type, 
+  title, 
+  description, 
+  buttonText, 
+  buttonLink, 
+  icon = '✨',
+  variant = 'primary'
+} = Astro.props;
+
+const variants = {
+  primary: 'bg-gradient-to-r from-primary-900 to-primary-800 border-primary-600/30',
+  secondary: 'bg-gradient-to-r from-secondary-900 to-secondary-800 border-secondary-600/30',
+  accent: 'bg-gradient-to-br from-sensual-900 to-sensual-800 border-sensual-600/30'
+};
+
+const getContent = () => {
+  switch (type) {
+    case 'newsletter':
+      return {
+        title: title || 'Restez Connecté avec Mad2Moi',
+        description: description || 'Recevez nos derniers articles, conseils exclusifs et offres spéciales directement dans votre boîte mail.',
+        buttonText: buttonText || 'S\'abonner à la Newsletter',
+        buttonLink: buttonLink || '#newsletter-signup',
+        icon: '📧'
+      };
+    case 'related-posts':
+      return {
+        title: title || 'Découvrez d\'Autres Articles',
+        description: description || 'Continuez votre exploration avec nos articles similaires qui pourraient vous intéresser.',
+        buttonText: buttonText || 'Voir Plus d\'Articles',
+        buttonLink: buttonLink || '/blog',
+        icon: '📚'
+      };
+    case 'contact':
+      return {
+        title: title || 'Besoin d\'Aide ou de Conseils ?',
+        description: description || 'Notre équipe d\'experts est là pour vous accompagner dans votre exploration érotique.',
+        buttonText: buttonText || 'Contactez-Nous',
+        buttonLink: buttonLink || '/contact',
+        icon: '💬'
+      };
+
+    case 'social-follow':
+      return {
+        title: title || 'Suivez-Nous sur les Réseaux Sociaux',
+        description: description || 'Restez connecté avec notre communauté et découvrez du contenu exclusif en temps réel.',
+        buttonText: buttonText || 'Nous Suivre',
+        buttonLink: buttonLink || '#social-links',
+        icon: '🌟'
+      };
+    default:
+      return {
+        title: title || 'Appel à l\'Action',
+        description: description || 'Cliquez ici pour en savoir plus.',
+        buttonText: buttonText || 'En Savoir Plus',
+        buttonLink: buttonLink || '#',
+        icon: icon
+      };
+  }
+};
+
+const content = getContent();
+---
+
+<section class={`mt-12 p-8 rounded-xl border ${variants[variant]} relative overflow-hidden shadow-2xl`}>
+  <!-- Background Pattern -->
+  <div class="absolute inset-0 opacity-10">
+    <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ec4899" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
+  </div>
+  
+  <div class="relative z-10 flex flex-col lg:flex-row items-center gap-8">
+    <!-- Icon and Content -->
+    <div class="flex-1 text-center lg:text-left">
+      <div class="text-5xl mb-4 drop-shadow-lg">{content.icon}</div>
+      <h3 class="text-2xl font-bold text-white mb-4 font-elegant leading-tight">
+        {content.title}
+      </h3>
+      <p class="text-lg text-white/90 leading-relaxed max-w-2xl">
+        {content.description}
+      </p>
+    </div>
+    
+    <!-- Action Button -->
+    <div class="flex-shrink-0">
+      <a
+        href={content.buttonLink}
+        class="inline-block px-8 py-4 bg-white text-primary-600 font-semibold rounded-lg hover:bg-primary-50 transition-all duration-300 hover:scale-105 text-center shadow-lg hover:shadow-xl"
+      >
+        {content.buttonText}
+      </a>
+    </div>
+  </div>
+</section>
+
+
+

@@ -1,0 +1,447 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Nouvel Article - Mad2Moi Admin">
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2" id="pageTitle">Créer un Nouvel Article</h1>
+        <p class="text-lg text-gray-600 dark:text-gray-300" id="pageDescription">Rédigez et publiez votre nouvel article de blog</p>
+      </div>
+      <div class="flex items-center space-x-4">
+        <a href="/admin/articles" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-lg transition-colors flex items-center space-x-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          <span>Retour aux Articles</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Article Creation Form -->
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+    <form id="articleForm" class="p-8 space-y-8">
+      <!-- Basic Information -->
+      <div class="border-b border-gray-200 dark:border-gray-700 pb-8">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">Informations de base</h2>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Title -->
+          <div class="lg:col-span-2">
+            <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Titre de l'article *
+            </label>
+            <input 
+              type="text" 
+              id="title" 
+              name="title" 
+              required
+              class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              placeholder="Entrez le titre de votre article..."
+            >
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Le slug sera automatiquement généré à partir du titre</p>
+          </div>
+
+          <!-- Category -->
+          <div>
+            <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Catégorie *
+            </label>
+            <div class="flex space-x-2">
+              <select 
+                id="category" 
+                name="category" 
+                required
+                class="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Sélectionner une catégorie</option>
+              </select>
+              <button 
+                type="button" 
+                id="addCategoryBtn"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-colors flex items-center"
+                title="Ajouter une nouvelle catégorie"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Status -->
+          <div>
+            <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Statut de publication
+            </label>
+            <select 
+              id="status" 
+              name="status"
+              class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="draft">Brouillon</option>
+              <option value="published">Publié</option>
+              <option value="scheduled">Programmé</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Section -->
+      <div class="border-b border-gray-200 dark:border-gray-700 pb-8">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">Contenu</h2>
+        
+        <!-- Excerpt -->
+        <div class="mb-6">
+          <label for="excerpt" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Description courte *
+          </label>
+          <textarea 
+            id="excerpt" 
+            name="excerpt" 
+            required
+            rows="3"
+            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            placeholder="Rédigez une description courte et accrocheuse de votre article..."
+            maxlength="200"
+          ></textarea>
+          <div class="flex justify-between items-center mt-1">
+            <p class="text-xs text-gray-500 dark:text-gray-400">Cette description apparaitra dans les aperçus et sur les réseaux sociaux</p>
+            <span id="excerptCount" class="text-xs text-gray-500 dark:text-gray-400">0/200</span>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div>
+          <label for="content" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Contenu de l'article *
+          </label>
+          <textarea 
+            id="content" 
+            name="content" 
+            required
+            rows="15"
+            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
+            placeholder="Rédigez le contenu complet de votre article..."
+          ></textarea>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Vous pouvez utiliser Markdown pour formater votre contenu</p>
+        </div>
+      </div>
+
+      <!-- Image Upload Section -->
+      <div class="border-b border-gray-200 dark:border-gray-700 pb-8">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">Images et Médias</h2>
+        
+        <div class="space-y-6">
+          <!-- Featured Image -->
+          <div>
+            <label for="featuredImage" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Image à la une *
+            </label>
+            <div class="space-y-4">
+              <!-- Image Upload Area -->
+              <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 text-center hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer" id="imageUploadArea">
+                <div class="space-y-4">
+                  <svg class="mx-auto h-16 w-16 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                  </svg>
+                  <div>
+                    <p class="text-lg font-medium text-gray-900 dark:text-white">Glissez-déposez votre image ici</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">ou cliquez pour sélectionner un fichier</p>
+                  </div>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    Formats supportés: JPG, JPEG, PNG, GIF, WebP, SVG, AVIF, BMP, TIFF, ICO
+                  </p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    Taille maximale: 10 MB
+                  </p>
+                </div>
+                <input 
+                  type="file" 
+                  id="featuredImage" 
+                  name="featuredImage"
+                  accept="image/*,.jpg,.jpeg,.png,.gif,.webp,.svg,.avif,.bmp,.tiff,.ico"
+                  class="hidden"
+                  required
+                >
+              </div>
+              
+              <!-- Image Preview -->
+              <div id="imagePreview" class="hidden">
+                <div class="relative w-full max-w-md mx-auto">
+                  <div class="bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden shadow-lg">
+                    <img id="previewImg" class="w-full h-auto object-cover" />
+                  </div>
+                  <div class="absolute top-2 right-2 flex space-x-2">
+                    <button 
+                      type="button" 
+                      id="editImage"
+                      class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full transition-colors shadow-lg"
+                      title="Modifier l'image"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                      </svg>
+                    </button>
+                    <button 
+                      type="button" 
+                      id="removeImage"
+                      class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition-colors shadow-lg"
+                      title="Supprimer l'image"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="text-center mt-3">
+                  <p class="text-sm text-gray-600 dark:text-gray-400" id="imageInfo"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Additional Images -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Images supplémentaires
+            </label>
+            <div class="space-y-4">
+              <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 text-center hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer" id="additionalImagesArea">
+                <div class="space-y-2">
+                  <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                  </svg>
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">Ajouter des images supplémentaires</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Pour illustrer votre article</p>
+                </div>
+                <input 
+                  type="file" 
+                  id="additionalImages" 
+                  name="additionalImages"
+                  accept="image/*,.jpg,.jpeg,.png,.gif,.webp,.svg,.avif,.bmp,.tiff,.ico"
+                  multiple
+                  class="hidden"
+                >
+              </div>
+              
+              <!-- Additional Images Preview -->
+              <div id="additionalImagesPreview" class="hidden">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="additionalImagesGrid"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Image Settings -->
+          <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+            <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-3">Paramètres des images</h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label for="imageAlt" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Texte alternatif
+                </label>
+                <input 
+                  type="text" 
+                  id="imageAlt" 
+                  name="imageAlt"
+                  class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Description de l'image..."
+                >
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Important pour l'accessibilité et le SEO</p>
+              </div>
+              
+              <div>
+                <label for="imageCaption" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Légende
+                </label>
+                <input 
+                  type="text" 
+                  id="imageCaption" 
+                  name="imageCaption"
+                  class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Légende de l'image..."
+                >
+              </div>
+              
+              <div>
+                <label for="imagePosition" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Position
+                </label>
+                <select 
+                  id="imagePosition" 
+                  name="imagePosition"
+                  class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="top">En haut</option>
+                  <option value="center">Au centre</option>
+                  <option value="bottom">En bas</option>
+                  <option value="left">À gauche</option>
+                  <option value="right">À droite</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Publishing Information -->
+      <div class="pb-8">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">Publication</h2>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Author (Auto-filled) -->
+          <div>
+            <label for="author" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Auteur
+            </label>
+            <input 
+              type="text" 
+              id="author" 
+              name="author"
+              readonly
+              class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white"
+              value=""
+            >
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Défini automatiquement selon l'utilisateur connecté</p>
+          </div>
+
+          <!-- Publish Date (Auto-filled) -->
+          <div>
+            <label for="publishDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Date de publication
+            </label>
+            <input 
+              type="date" 
+              id="publishDate" 
+              name="publishDate"
+              class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Laissez vide pour publier immédiatement</p>
+          </div>
+
+          <!-- Featured Article -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Options
+            </label>
+            <div class="flex items-center space-x-6 pt-3">
+              <label class="flex items-center">
+                <input 
+                  type="checkbox" 
+                  id="featured" 
+                  name="featured"
+                  class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                >
+                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Article à la une</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
+        <div class="flex items-center space-x-4">
+          <button 
+            type="button" 
+            id="saveAsDraft"
+            class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-lg transition-colors flex items-center space-x-2"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span>Sauvegarder comme brouillon</span>
+          </button>
+          
+          <button 
+            type="button" 
+            id="previewBtn"
+            class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg transition-colors flex items-center space-x-2"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+            </svg>
+            <span>Prévisualiser</span>
+          </button>
+        </div>
+
+        <button 
+          type="submit" 
+          id="publishBtn"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg transition-colors flex items-center space-x-2 font-semibold"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+          </svg>
+          <span id="publishBtnText">Publier l'article</span>
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Category Creation Modal -->
+  <div id="categoryModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-md">
+      <div class="p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h3 id="modalTitle" class="text-xl font-semibold text-gray-900 dark:text-white">Nouvelle Catégorie</h3>
+          <button id="closeCategoryModal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <form id="categoryForm" class="space-y-4">
+          <div>
+            <label for="newCategoryName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Nom de la catégorie *
+            </label>
+            <input 
+              type="text" 
+              id="newCategoryName" 
+              required
+              class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Nom de la nouvelle catégorie..."
+            >
+          </div>
+          
+          <div>
+            <label for="newCategoryDesc" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Description
+            </label>
+            <textarea 
+              id="newCategoryDesc"
+              rows="3"
+              class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              placeholder="Description de la catégorie..."
+            ></textarea>
+          </div>
+          
+          <div class="flex items-center justify-end space-x-3 pt-4">
+            <button 
+              type="button" 
+              id="cancelCategory"
+              class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg transition-colors"
+            >
+              Annuler
+            </button>
+            <button 
+              type="submit"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              Créer la catégorie
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script src="/scripts/new-article.js" is:inline></script>

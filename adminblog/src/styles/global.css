@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles for login page */
+body { 
+    font-family: 'Inter', sans-serif; 
+}
+
+.glass-effect { 
+    backdrop-filter: blur(10px); 
+    background: rgba(15, 23, 42, 0.9); 
+}
+
+.glass-effect-light { 
+    backdrop-filter: blur(10px); 
+    background: rgba(255, 255, 255, 0.2); 
+}
+
+.gradient-bg-dark { 
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); 
+}
+
+.gradient-bg-light { 
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%); 
+}
+
+.shadow-glow-dark { 
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.3); 
+}
+
+.shadow-glow-light { 
+    box-shadow: 0 0 30px rgba(102, 126, 234, 0.3); 
+}
+
+.mode-transition { 
+    transition: all 0.3s ease; 
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { 
+    width: 6px; 
+}
+
+::-webkit-scrollbar-track { 
+    background: rgba(255, 255, 255, 0.1); 
+}
+
+::-webkit-scrollbar-thumb { 
+    background: rgba(255, 255, 255, 0.3); 
+    border-radius: 3px; 
+}

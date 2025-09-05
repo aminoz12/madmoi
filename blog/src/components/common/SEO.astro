@@ -1,0 +1,177 @@
+---
+export interface Props {
+  title: string;
+  description: string;
+  image?: string;
+  type?: 'website' | 'article';
+  publishedTime?: string;
+  modifiedTime?: string;
+  author?: string;
+  tags?: string[];
+  canonicalURL?: string;
+  ogImage?: string;
+  twitterImage?: string;
+  locale?: string;
+  alternateLocales?: string[];
+  structuredData?: any;
+}
+
+const {
+  title,
+  description,
+  image = '/images/og-default.jpg',
+  type = 'website',
+  publishedTime,
+  modifiedTime,
+  author,
+  tags = [],
+  canonicalURL,
+  ogImage,
+  twitterImage,
+  locale = 'fr',
+  alternateLocales = ['en', 'de'],
+  structuredData
+} = Astro.props;
+
+const siteTitle = title === 'Mad2Moi Blog - Exploration Érotique & Bien-être' ? title : `${title} | Mad2Moi Blog`;
+const siteURL = Astro.site || 'https://mad2moi-blog.com';
+const fullImageURL = image.startsWith('http') ? image : `${siteURL}${image}`;
+const canonical = canonicalURL || `${siteURL}${Astro.url.pathname}`;
+
+// Enhanced image URLs for social media
+const ogImageURL = ogImage ? (ogImage.startsWith('http') ? ogImage : `${siteURL}${ogImage}`) : fullImageURL;
+const twitterImageURL = twitterImage ? (twitterImage.startsWith('http') ? twitterImage : `${siteURL}${twitterImage}`) : fullImageURL;
+
+// Viral, engaging descriptions for social media
+const viralDescription = description.includes('Blog mature') 
+  ? '🚀 Découvrez l\'univers fascinant de l\'exploration érotique ! 💋 Conseils experts, guides pratiques et témoignages authentiques pour une vie sexuelle épanouie ✨' 
+  : description;
+
+// Enhanced structured data
+const defaultStructuredData = {
+  "@context": "https://schema.org",
+  "@type": type === 'article' ? 'Article' : 'WebPage',
+  "name": siteTitle,
+  "description": viralDescription,
+  "url": canonical,
+  "image": ogImageURL,
+  "publisher": {
+    "@type": "Organization",
+    "name": "Mad2Moi Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": `${siteURL}/logo.avif`
+    },
+    "sameAs": [
+      "https://x.com/mad2_moi",
+      "https://fr.pinterest.com/mad2moi/",
+      "https://www.facebook.com/mad2moi/",
+      "https://www.youtube.com/@mad2moi",
+      "https://www.instagram.com/mad2moi_off"
+    ]
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": canonical
+  }
+};
+
+if (type === 'article' && author) {
+  defaultStructuredData.author = {
+    "@type": "Person",
+    "name": author
+  };
+  if (publishedTime) {
+    defaultStructuredData.datePublished = publishedTime;
+  }
+  if (modifiedTime) {
+    defaultStructuredData.dateModified = modifiedTime;
+  }
+}
+
+const finalStructuredData = structuredData || defaultStructuredData;
+---
+
+<!-- SEO Meta Tags -->
+<title>{siteTitle}</title>
+<meta name="description" content={description} />
+<meta name="keywords" content={tags.join(', ')} />
+{author && <meta name="author" content={author} />}
+
+<!-- Canonical URL -->
+<link rel="canonical" href={canonical} />
+
+<!-- Hreflang Tags for Multilingual SEO -->
+<link rel="alternate" hreflang={locale} href={canonical} />
+{alternateLocales.map(lang => (
+  <link rel="alternate" hreflang={lang} href={`${siteURL}/${lang}${Astro.url.pathname}`} />
+))}
+<link rel="alternate" hreflang="x-default" href={canonical} />
+
+<!-- Open Graph / Facebook - Enhanced for Viral Engagement -->
+<meta property="og:type" content={type} />
+<meta property="og:url" content={canonical} />
+<meta property="og:title" content={siteTitle} />
+<meta property="og:description" content={viralDescription} />
+<meta property="og:image" content={ogImageURL} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content={siteTitle} />
+<meta property="og:site_name" content="Mad2Moi Blog" />
+<meta property="og:locale" content={locale === 'fr' ? 'fr_FR' : locale === 'en' ? 'en_US' : 'de_DE'} />
+<meta property="og:locale:alternate" content="en_US" />
+<meta property="og:locale:alternate" content="de_DE" />
+{type === 'article' && publishedTime && <meta property="article:published_time" content={publishedTime} />}
+{type === 'article' && modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+{type === 'article' && author && <meta property="article:author" content={author} />}
+{type === 'article' && tags.map(tag => <meta property="article:tag" content={tag} />)}
+
+<!-- Twitter Card - Enhanced for Maximum Engagement -->
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:site" content="@mad2_moi" />
+<meta property="twitter:creator" content="@mad2_moi" />
+<meta property="twitter:url" content={canonical} />
+<meta property="twitter:title" content={siteTitle} />
+<meta property="twitter:description" content={viralDescription} />
+<meta property="twitter:image" content={twitterImageURL} />
+<meta property="twitter:image:alt" content={siteTitle} />
+
+<!-- Additional Meta Tags -->
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+<meta name="theme-color" content="#ec4899" />
+<meta name="msapplication-TileColor" content="#ec4899" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+<!-- Preconnect to external domains -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="preconnect" href="https://www.google-analytics.com" />
+<link rel="preconnect" href="https://www.googletagmanager.com" />
+
+<!-- RSS Feed -->
+<link rel="alternate" type="application/rss+xml" title="Mad2Moi Blog RSS Feed" href="/rss.xml" />
+
+<!-- Structured Data -->
+<script type="application/ld+json" set:html={JSON.stringify(finalStructuredData)} />
+
+<!-- Additional Social Media Meta Tags -->
+<meta property="og:image:secure_url" content={ogImageURL} />
+<meta property="og:image:type" content="image/jpeg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+
+<!-- Pinterest Rich Pins -->
+<meta name="pinterest-rich-pin" content="true" />
+
+<!-- Facebook App ID (if you have one) -->
+<!-- <meta property="fb:app_id" content="YOUR_FACEBOOK_APP_ID" /> -->
+
+<!-- WhatsApp Meta Tags -->
+<meta property="og:image:width" content="300" />
+<meta property="og:image:height" content="300" />
+
+<!-- LinkedIn Meta Tags -->
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="627" />
+

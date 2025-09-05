@@ -1,0 +1,50 @@
+---
+export interface Props {
+  postSlug: string;
+  initialCount?: number;
+}
+
+const { postSlug, initialCount = 0 } = Astro.props;
+---
+
+<div class="flex items-center gap-2 text-secondary-300 text-sm">
+  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path>
+    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"></path>
+  </svg>
+  <span id="visitor-count-{postSlug}" class="font-medium">
+    {initialCount.toLocaleString('fr-FR')}
+  </span>
+  <span class="text-xs opacity-75">vues</span>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const visitorCountElement = document.getElementById('visitor-count-{postSlug}');
+    
+    if (visitorCountElement) {
+      // Simuler l'incrémentation du compteur
+      let currentCount = {initialCount};
+      
+      // Incrémenter le compteur toutes les 30 secondes pour simuler de vraies visites
+      setInterval(() => {
+        currentCount += Math.floor(Math.random() * 3) + 1;
+        visitorCountElement.textContent = currentCount.toLocaleString('fr-FR');
+      }, 30000);
+      
+      // Incrémenter immédiatement pour la visite actuelle
+      currentCount += 1;
+      visitorCountElement.textContent = currentCount.toLocaleString('fr-FR');
+      
+      // Ici vous pourriez envoyer la visite à votre API
+      // fetch('/api/visits', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ postSlug: '{postSlug}' })
+      // });
+    }
+  });
+</script>
+
+
+

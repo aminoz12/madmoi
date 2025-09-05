@@ -1,0 +1,114 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { initializeDatabase, getArticleBySlug, getPublishedArticles } from '../utils/database.js';
+
+// Debug information
+let debugInfo = {
+  articles: [],
+  specificArticle: null,
+  error: null
+};
+
+try {
+  await initializeDatabase();
+  
+  // Get all published articles
+  const articles = await getPublishedArticles();
+  debugInfo.articles = articles.map(art => ({
+    id: art.id,
+    title: art.title,
+    slug: art.slug,
+    status: art.status,
+    hasContent: !!art.content,
+    contentLength: art.content ? art.content.length : 0
+  }));
+  
+  // Test specific article
+  const specificSlug = 'levolution-du-jeu-de-role-de-la-table-a-lecran-2';
+  const specificArticle = await getArticleBySlug(specificSlug);
+  
+  if (specificArticle) {
+    debugInfo.specificArticle = {
+      id: specificArticle.id,
+      title: specificArticle.title,
+      slug: specificArticle.slug,
+      status: specificArticle.status,
+      hasContent: !!specificArticle.content,
+      contentLength: specificArticle.content ? specificArticle.content.length : 0,
+      excerpt: specificArticle.excerpt,
+      categoryName: specificArticle.category_name,
+      authorName: specificArticle.author_name
+    };
+  }
+  
+} catch (error) {
+  debugInfo.error = error.message;
+  console.error('Debug page error:', error);
+}
+---
+
+<Layout title="Blog Database Debug">
+  <div class="min-h-screen bg-gray-900 text-white p-8">
+    <div class="container mx-auto max-w-4xl">
+      <h1 class="text-3xl font-bold mb-8">Blog Database Debug</h1>
+      
+      {debugInfo.error && (
+        <div class="bg-red-900 border border-red-700 rounded p-4 mb-6">
+          <h2 class="text-xl font-semibold mb-2">Error</h2>
+          <p>{debugInfo.error}</p>
+        </div>
+      )}
+      
+      <div class="bg-gray-800 rounded p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4">Published Articles ({debugInfo.articles.length})</h2>
+        {debugInfo.articles.length === 0 ? (
+          <p class="text-red-400">No published articles found!</p>
+        ) : (
+          <div class="space-y-2">
+            {debugInfo.articles.map((article) => (
+              <div class="border border-gray-700 rounded p-3">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h3 class="font-medium">{article.title}</h3>
+                    <p class="text-sm text-gray-400">Slug: {article.slug}</p>
+                    <p class="text-sm text-gray-400">Status: {article.status}</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-sm">Content: {article.hasContent ? '✅' : '❌'}</p>
+                    <p class="text-sm">{article.contentLength} chars</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      
+      <div class="bg-gray-800 rounded p-6">
+        <h2 class="text-xl font-semibold mb-4">Specific Article Test</h2>
+        {debugInfo.specificArticle ? (
+          <div class="border border-green-700 rounded p-4">
+            <h3 class="font-medium text-green-400">{debugInfo.specificArticle.title}</h3>
+            <p class="text-sm text-gray-400">Slug: {debugInfo.specificArticle.slug}</p>
+            <p class="text-sm text-gray-400">Status: {debugInfo.specificArticle.status}</p>
+            <p class="text-sm">Content: {debugInfo.specificArticle.hasContent ? '✅' : '❌'} ({debugInfo.specificArticle.contentLength} chars)</p>
+            <p class="text-sm">Category: {debugInfo.specificArticle.categoryName || 'None'}</p>
+            <p class="text-sm">Author: {debugInfo.specificArticle.authorName || 'None'}</p>
+            {debugInfo.specificArticle.excerpt && (
+              <p class="text-sm mt-2">Excerpt: {debugInfo.specificArticle.excerpt}</p>
+            )}
+          </div>
+        ) : (
+          <p class="text-red-400">Specific article not found!</p>
+        )}
+      </div>
+      
+      <div class="mt-6">
+        <a href="/blog/levolution-du-jeu-de-role-de-la-table-a-lecran-2" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">
+          Test Article Page
+        </a>
+      </div>
+    </div>
+  </div>
+</Layout>
+
