@@ -724,7 +724,8 @@ class GPT5Service {
 
       console.log('Generating image with prompt:', imagePrompt);
 
-      const requestBody = {
+      // Try DALL-E-3 first, fallback to DALL-E-2 if access denied
+      let requestBody = {
         model: 'dall-e-3',
         prompt: imagePrompt,
         n: 1,
@@ -743,7 +744,7 @@ class GPT5Service {
         fullBody: requestBody
       });
 
-      const response = await fetch('https://api.openai.com/v1/images/generations', {
+      let response = await fetch('https://api.openai.com/v1/images/generations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -752,10 +753,45 @@ class GPT5Service {
         body: JSON.stringify(requestBody)
       });
 
+      // If DALL-E-3 access is denied, try DALL-E-2
       if (!response.ok) {
         const errorText = await response.text();
         console.error('DALL-E API Error:', response.status, errorText);
-        throw new Error(`DALL-E API error: ${response.status} - ${errorText}`);
+        
+        // Check if it's an access denied error for DALL-E-3
+        if (response.status === 403 && errorText.includes('dall-e-3')) {
+          console.log('DALL-E-3 access denied, falling back to DALL-E-2...');
+          
+          // Modify request for DALL-E-2
+          requestBody = {
+            model: 'dall-e-2',
+            prompt: imagePrompt.length > 1000 ? imagePrompt.substring(0, 1000) : imagePrompt, // DALL-E-2 has shorter prompt limit
+            n: 1,
+            size: '1024x1024',
+            response_format: 'b64_json'
+            // Note: quality and style are not supported in DALL-E-2
+          };
+          
+          console.log('📤 Fallback DALL-E-2 API Request Body:', requestBody);
+          
+          // Retry with DALL-E-2
+          response = await fetch('https://api.openai.com/v1/images/generations', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${this.apiKey}`
+            },
+            body: JSON.stringify(requestBody)
+          });
+          
+          if (!response.ok) {
+            const fallbackErrorText = await response.text();
+            console.error('DALL-E-2 Fallback API Error:', response.status, fallbackErrorText);
+            throw new Error(`DALL-E API error (tried both DALL-E-3 and DALL-E-2): ${response.status} - ${fallbackErrorText}`);
+          }
+        } else {
+          throw new Error(`DALL-E API error: ${response.status} - ${errorText}`);
+        }
       }
 
       const data = await response.json();
@@ -780,7 +816,7 @@ class GPT5Service {
         
         // Convert base64 to file and save locally
         try {
-          const imageData = await this.saveBase64ImageAsFile(base64Data, prompt);
+          const imageData = await this.saveBase64ImageAsFile(base64Data, prompt, requestBody.model);
           return {
             success: true,
             data: imageData
@@ -797,8 +833,9 @@ class GPT5Service {
               style: style,
               isDataUrl: true,
               type: 'data_url_fallback',
+              model: requestBody.model,
               alt: `Image générée par IA pour: ${prompt}`,
-              caption: `Image générée automatiquement par DALL-E 3`
+              caption: `Image générée automatiquement par ${requestBody.model.toUpperCase()}`
             }
           };
         }
@@ -815,9 +852,21 @@ class GPT5Service {
 
     } catch (error) {
       console.error('Error generating image with DALL-E:', error);
+      
+      // Provide more helpful error messages
+      let userFriendlyError = error.message;
+      if (error.message.includes('403') && error.message.includes('dall-e-3')) {
+        userFriendlyError = 'Accès DALL-E-3 non disponible. Veuillez vérifier votre plan OpenAI ou contacter le support.';
+      } else if (error.message.includes('quota')) {
+        userFriendlyError = 'Quota API épuisé. Veuillez vérifier votre utilisation OpenAI.';
+      } else if (error.message.includes('API key')) {
+        userFriendlyError = 'Clé API OpenAI manquante ou invalide. Veuillez configurer votre clé API.';
+      }
+      
       return {
         success: false,
-        error: error.message,
+        error: userFriendlyError,
+        originalError: error.message,
         data: null
       };
     }
@@ -1015,7 +1064,7 @@ class GPT5Service {
         isPermanent: true,
         isOpenAIUrl: false,
         alt: `Image générée par IA pour: ${prompt}`,
-        caption: `Image générée automatiquement par DALL-E 3`
+        caption: `Image générée automatiquement par ${model.toUpperCase()}`
       };
       
       console.log('💾 Image data prepared for storage:', {
@@ -1078,7 +1127,7 @@ class GPT5Service {
   }
 
   // Save base64 image data to a file
-  async saveBase64ImageAsFile(base64Data, prompt) {
+  async saveBase64ImageAsFile(base64Data, prompt, model = 'dall-e-3') {
     try {
       console.log('💾 Saving base64 image data to file...');
       
@@ -1165,7 +1214,7 @@ class GPT5Service {
             isOpenAIUrl: false,
             isLocal: true,
             alt: `Image générée par IA pour: ${prompt}`,
-            caption: `Image générée automatiquement par DALL-E 3`,
+            caption: `Image générée automatiquement par ${model.toUpperCase()}`,
             serverPath: uploadResult.path || null
           };
           
@@ -1213,7 +1262,7 @@ class GPT5Service {
           isOpenAIUrl: false,
           isLocal: false,
           alt: `Image générée par IA pour: ${prompt}`,
-          caption: `Image générée automatiquement par DALL-E 3`,
+          caption: `Image générée automatiquement par ${model.toUpperCase()}`,
           blobUrl: blobUrl // Store reference for cleanup
         };
       }
@@ -1234,7 +1283,7 @@ class GPT5Service {
         isOpenAIUrl: false,
         isLocal: false,
         alt: `Image générée par IA pour: ${prompt}`,
-        caption: `Image générée automatiquement par DALL-E 3`,
+        caption: `Image générée automatiquement par ${model.toUpperCase()}`,
         fallbackType: 'data-url'
       };
       
