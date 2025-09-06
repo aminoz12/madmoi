@@ -23,7 +23,9 @@ export async function connectToMongoDB() {
         },
         maxPoolSize: 10,
         serverSelectionTimeoutMS: 5000,
-        socketTimeoutMS: 45000,
+        socketTimeoutMS: 45000, 
+        ssl: true,
+        tls: true,
       });
 
       await client.connect();
@@ -99,3 +101,4 @@ process.on('SIGTERM', async () => {
   await closeMongoDBConnection();
   process.exit(0);
 });
+
