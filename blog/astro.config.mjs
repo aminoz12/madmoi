@@ -7,7 +7,7 @@ import node from '@astrojs/node';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://your-domain.com',
+  site: 'https://www.mad2moi.store', // main site URL
   output: 'server', // Enable server-side rendering for API endpoints
   adapter: node({
     mode: 'standalone'
@@ -26,6 +26,18 @@ export default defineConfig({
   vite: {
     optimizeDeps: {
       include: ['openai']
+    },
+    server: {
+      host: true
     }
+  },
+  server: {
+    host: true,
+    port: process.env.PORT || 3000,
+    allowedHosts: [
+      'madmoi-1.onrender.com',
+      'www.mad2moi.store',
+      'mad2moi.store'
+    ]
   }
 });
